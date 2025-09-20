@@ -1,6 +1,8 @@
 // triangle_dds_pos.v
 // 32-bit phase, DT_W-bit output, 0 ~ +amplitude only, no multipliers
 module triangle_dds #(
+    parameter CLK_FREQ = 32'd50_000_000,
+    // parameter SAD_FREQ = 196850,
     parameter PH_W = 32,
     parameter DT_W = 8
 )(
@@ -12,11 +14,12 @@ module triangle_dds #(
     output reg  [DT_W-1:0]     wave_out_270     // 0 ~ amplitude
 );
 
+wire [31:0] SAD_FREQ = (CLK_FREQ>>2) / (amplitude-128);
 
 // wire [7:0] wave_info [0 : 511]; 
 //归一化频率
 //50M/512,即每个周期中，三角波的数值都会加一。
-localparam SAD_FREQ = 97656;       
+// localparam SAD_FREQ = 196850;       
 /*-------- 相位累加器 --------*/
 
 localparam RAISE = 0;
@@ -38,7 +41,7 @@ always @(posedge clk ) begin
     else begin
         case (sign_status)
             RAISE : if(addr >= amplitude - freq_word / SAD_FREQ) begin sign_status <= FALL; end
-            FALL  : if(addr <= freq_word / SAD_FREQ) begin sign_status <= RAISE; end
+            FALL  : if(addr <= 256 - amplitude + freq_word / SAD_FREQ) begin sign_status <= RAISE; end
             default : sign_status <= FALL;
         endcase
     end 

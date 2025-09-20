@@ -1,4 +1,5 @@
-module ai_match_top #(
+module top #(
+    parameter CLK_FREQ = 32'd50_000_000,
     parameter PH_W = 32,
     parameter DT_W = 8
 ) (
@@ -12,9 +13,8 @@ module ai_match_top #(
     input [DT_W -1 : 0] wave_in,
     output [1:0] wave_type
 );
-localparam SAD_FREQ = 97656; 
 
-localparam THRESHOLD = 10;
+localparam THRESHOLD = 4;
 
 localparam IDLE = 0;
 localparam START_MATCHING = 1;
@@ -77,7 +77,9 @@ wire [7:0] tri_wave_270;
 wire [7:0] sqr_wave;
 wire [7:0] dsqr_wave;
 
-triangle_dds dut0 (
+triangle_dds #(
+    .CLK_FREQ(CLK_FREQ)
+) dut0 (
     .clk(clk),
     .rst_n(matching_gate),
 
@@ -89,13 +91,15 @@ triangle_dds dut0 (
 );
 
 //产生方波模板
-sqr_wave_gen dut1 (
+sqr_wave_gen #(
+    .CLK_FREQ(CLK_FREQ)
+) dut1 (
     .clk(clk),
     .rst_n(matching_gate),
     
     .freq_word(freq_word),
     .amplitude(amplitude),
-    .cycle_num((freq_word<<8)/SAD_FREQ),
+    .cycle_num(CLK_FREQ/freq_word >> 1),
 
     .sel_phase(0),
     .wave_out(sqr_wave)
@@ -104,13 +108,15 @@ sqr_wave_gen dut1 (
 //产生三角波的求导波
 
 
-sqr_wave_gen dut2 (
+sqr_wave_gen #(
+    .CLK_FREQ(CLK_FREQ)
+) dut2 (
     .clk(clk),
     .rst_n(matching_gate),
     
     .freq_word(freq_word),
-    .amplitude(freq_word/SAD_FREQ +128),
-    .cycle_num((freq_word<<8)/SAD_FREQ),
+    .amplitude((amplitude -128) * freq_word / (CLK_FREQ >> 2) +128),
+    .cycle_num((CLK_FREQ/freq_word) >> 1),
 
     .sel_phase(0),
     .wave_out(dsqr_wave)

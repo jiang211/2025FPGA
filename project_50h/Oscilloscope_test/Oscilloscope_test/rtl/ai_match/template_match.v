@@ -4,7 +4,7 @@
 //模板2为求导后的模板匹配
 
 module template_match #(
-    parameter  THRESHOLD0 = 20,
+    parameter  THRESHOLD0 = 10,
     parameter THRESHOLD1 = 2
 ) (
     input clk,

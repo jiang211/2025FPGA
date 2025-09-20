@@ -1,6 +1,7 @@
 // sqr_wave_gen.v
 // 32-bit phase, 8-bit output, 0° / 180° selectable by sel_phase
 module sqr_wave_gen #(
+    parameter CLK_FREQ = 32'd50_000_000,
     parameter PH_W = 32,
     parameter DT_W = 8
 )(
@@ -15,7 +16,8 @@ module sqr_wave_gen #(
     output reg  [DT_W-1:0]     wave_out     // 选中相位方波
 );
 
-localparam SAD_FREQ = 97656;       
+// localparam SAD_FREQ = 196850;       
+wire [31:0] SAD_FREQ = (CLK_FREQ>>2) / (amplitude-128);
 
 
 localparam RAISE = 0;
