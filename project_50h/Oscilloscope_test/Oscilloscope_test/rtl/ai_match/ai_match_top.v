@@ -1,4 +1,4 @@
-module top #(
+module ai_match_top #(
     parameter PH_W = 32,
     parameter DT_W = 8
 ) (
