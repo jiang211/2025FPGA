@@ -17,6 +17,7 @@ module tb_tri_wave;
 parameter CLK_PERIOD = 10;      // 10 ns -> 100 MHz 采样时钟
 parameter DW         = 8;       // 数据位宽
 parameter DEPTH      = 64;     // 三角波一个周期采样点�?
+localparam SAD_FREQ = 97656;       
 
 // -----------------------------------------------------------
 // 信号
@@ -63,7 +64,7 @@ end
 initial begin
     valid = 0;
     rst_n = 0;
-    freq_word = 32'd2000000;
+    freq_word = 32'd100000;
     amplitude = 16'd150;
     repeat(10) @(posedge clk);
     rst_n = 1;
@@ -88,6 +89,8 @@ sqr_wave_gen dut1 (
     .rst_n(rst_n),
     .freq_word(freq_word),
     .amplitude(amplitude),
+    .cycle_num(freq_word<<8/SAD_FREQ),
+
     .sel_phase(0),
     .wave_out(wave_sqr)
 
@@ -97,6 +100,8 @@ sqr_wave_gen dut2 (
     .rst_n(rst_n),
     .freq_word(freq_word),
     .amplitude(amplitude),
+    .cycle_num(freq_word<<8/SAD_FREQ),
+
     .sel_phase(1),
     .wave_out(wave_sqr_180)
 
