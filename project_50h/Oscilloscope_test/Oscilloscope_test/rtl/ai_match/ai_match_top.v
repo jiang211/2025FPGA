@@ -1,10 +1,10 @@
-module ai_match_top #(
+module top #(
     parameter PH_W = 32,
     parameter DT_W = 8
 ) (
     input  wire                clk,
     input  wire                rst_n,
-    
+
     input  wire [PH_W-1:0]     freq_word,
     input  wire [DT_W-1:0]     amplitude,  // 峰值（正数）
     input gate,
@@ -95,6 +95,8 @@ sqr_wave_gen dut1 (
     
     .freq_word(freq_word),
     .amplitude(amplitude),
+    .cycle_num((freq_word<<8)/SAD_FREQ),
+
     .sel_phase(0),
     .wave_out(sqr_wave)
 );
@@ -108,6 +110,8 @@ sqr_wave_gen dut2 (
     
     .freq_word(freq_word),
     .amplitude(freq_word/SAD_FREQ +128),
+    .cycle_num((freq_word<<8)/SAD_FREQ),
+
     .sel_phase(0),
     .wave_out(dsqr_wave)
 );
