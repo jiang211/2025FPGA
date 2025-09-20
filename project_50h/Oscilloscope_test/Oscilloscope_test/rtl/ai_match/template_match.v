@@ -66,6 +66,12 @@ always @(posedge clk )begin
             if(dsin_template-dwave_in <= THRESHOLD1 || dwave_in - dsin_template <= THRESHOLD1)begin
                 sin_template_cnt1 <= sin_template_cnt1 + 1;
             end else sin_template_cnt1 <= sin_template_cnt1 - 2;
+        end else begin
+        tri_template_cnt0 <= 512;
+        tri_template_cnt1 <= 512;
+        sqr_template_cnt0 <= 512;
+        sqr_template_cnt1 <= 512;
+        sin_template_cnt1 <= 512;
         end
     end
 end
@@ -86,6 +92,7 @@ always @(posedge clk )begin
         wave_type <= TRI_WAVE;
     end
     else begin
+        if(wave_valid)begin
         if(tri_template_cnt_total >= sqr_template_cnt_total && tri_template_cnt_total >= sin_template_cnt_total)begin
             wave_type <= TRI_WAVE;
         end 
@@ -94,6 +101,7 @@ always @(posedge clk )begin
         end
         else if(sin_template_cnt_total >= tri_template_cnt_total && sin_template_cnt_total >= tri_template_cnt_total)begin
             wave_type <= SIN_WAVE;
+        end
         end
     end
 end
