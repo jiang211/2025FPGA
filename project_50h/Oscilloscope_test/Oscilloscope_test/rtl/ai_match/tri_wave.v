@@ -54,7 +54,7 @@ always @(posedge clk ) begin
     else begin
         case (sign_status_270)
             RAISE : if(addr_270 >= amplitude - freq_word / SAD_FREQ) begin sign_status_270 <= FALL; end
-            FALL  : if(addr_270 <= freq_word / SAD_FREQ) begin sign_status_270 <= RAISE; end
+            FALL  : if(addr_270 <= 256 - amplitude + freq_word / SAD_FREQ) begin sign_status_270 <= RAISE; end
             default : sign_status_270 <= FALL;
         endcase
     end 
@@ -70,7 +70,7 @@ always @(posedge clk)
 
 always @(posedge clk)
     // if (!rst_n) phase <= 0;
-    if (!rst_n) phase_270 <= ((SAD_FREQ * amplitude / freq_word)>>1) * freq_word;
+    if (!rst_n) phase_270 <= ((SAD_FREQ * ((amplitude>>1) + 64) / freq_word)) * freq_word;
     else        phase_270 <= sign_status_270 == RAISE ? phase_270 + freq_word : phase_270 - freq_word;
 
 wire [PH_W-2:0] ramp;
