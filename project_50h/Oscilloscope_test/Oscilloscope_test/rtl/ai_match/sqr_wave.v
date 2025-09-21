@@ -11,13 +11,14 @@ module sqr_wave_gen #(
     input  wire [PH_W-1:0]     freq_word,
     input  wire [DT_W-1:0]     amplitude,  // 峰值（正数）
     input  wire [DT_W-1:0]     cycle_num,
-
+    input  wire [31:0]         SAD_FREQ,
+    
     input  wire                sel_phase,   // 0:0°  1:180°
     output reg  [DT_W-1:0]     wave_out     // 选中相位方波
 );
 
 // localparam SAD_FREQ = 196850;       
-wire [31:0] SAD_FREQ = (CLK_FREQ>>2) / (amplitude-128);
+// wire [31:0] SAD_FREQ = (CLK_FREQ>>2) / (amplitude-128);
 
 
 localparam RAISE = 0;

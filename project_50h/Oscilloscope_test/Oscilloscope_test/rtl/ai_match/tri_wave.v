@@ -8,13 +8,16 @@ module triangle_dds #(
 )(
     input  wire                clk,
     input  wire                rst_n,
+
     input  wire [PH_W-1:0]     freq_word,
     input  wire [DT_W-1:0]     amplitude,  // 峰值（正数）
+    input  wire [31:0]         SAD_FREQ,
+
     output reg  [DT_W-1:0]     wave_out,     // 0 ~ amplitude
     output reg  [DT_W-1:0]     wave_out_270     // 0 ~ amplitude
 );
 
-wire [31:0] SAD_FREQ = (CLK_FREQ>>2) / (amplitude-128);
+// wire [31:0] SAD_FREQ = (CLK_FREQ>>2) / (amplitude-128);
 
 // wire [7:0] wave_info [0 : 511]; 
 //归一化频率
@@ -34,14 +37,38 @@ reg sign_status_270;
 wire [PH_W-2:0] addr = phase / SAD_FREQ;
 wire [PH_W-2:0] addr_270 = phase_270 / SAD_FREQ;
 
+
+reg [10 : 0] step;
+reg [31:0]pharse_ini_step0;
+reg [31:0]pharse_ini_step1;
+reg [31:0]pharse_ini_step2;
+reg [31:0]pharse270_ini_step0;
+reg [31:0]pharse270_ini_step1;
+reg [31:0]pharse270_ini_step2;
+always @(posedge clk ) begin
+    if (!rst_n) begin
+        step <= 0;
+    end
+    else begin
+        step <= freq_word / SAD_FREQ;
+        pharse_ini_step0 <= SAD_FREQ * amplitude;
+        pharse_ini_step1 <= pharse_ini_step0 / freq_word;
+        pharse_ini_step2 <= pharse_ini_step1 * freq_word;
+        pharse270_ini_step0 <= SAD_FREQ * ((amplitude>>1) + 64);
+        pharse270_ini_step1 <= pharse270_ini_step0 / freq_word;
+        pharse270_ini_step2 <= pharse270_ini_step1 * freq_word;
+    end 
+end
+
+
 always @(posedge clk ) begin
     if (!rst_n) begin
         sign_status <= 0;
     end
     else begin
         case (sign_status)
-            RAISE : if(addr >= amplitude - freq_word / SAD_FREQ) begin sign_status <= FALL; end
-            FALL  : if(addr <= 256 - amplitude + freq_word / SAD_FREQ) begin sign_status <= RAISE; end
+            RAISE : if(addr >= amplitude - step) begin sign_status <= FALL; end
+            FALL  : if(addr <= 256 - amplitude + step) begin sign_status <= RAISE; end
             default : sign_status <= FALL;
         endcase
     end 
@@ -53,8 +80,8 @@ always @(posedge clk ) begin
     end
     else begin
         case (sign_status_270)
-            RAISE : if(addr_270 >= amplitude - freq_word / SAD_FREQ) begin sign_status_270 <= FALL; end
-            FALL  : if(addr_270 <= 256 - amplitude + freq_word / SAD_FREQ) begin sign_status_270 <= RAISE; end
+            RAISE : if(addr_270 >= amplitude - step) begin sign_status_270 <= FALL; end
+            FALL  : if(addr_270 <= 256 - amplitude + step) begin sign_status_270 <= RAISE; end
             default : sign_status_270 <= FALL;
         endcase
     end 
@@ -64,13 +91,13 @@ end
 
 always @(posedge clk)
     // if (!rst_n) phase <= 0;
-    if (!rst_n) phase <= (SAD_FREQ * amplitude / freq_word) * freq_word;
+    if (!rst_n) phase <= pharse_ini_step2;
     else        phase <= sign_status== RAISE ? phase + freq_word : phase - freq_word;
 
 
 always @(posedge clk)
     // if (!rst_n) phase <= 0;
-    if (!rst_n) phase_270 <= ((SAD_FREQ * ((amplitude>>1) + 64) / freq_word)) * freq_word;
+    if (!rst_n) phase_270 <= pharse270_ini_step2;
     else        phase_270 <= sign_status_270 == RAISE ? phase_270 + freq_word : phase_270 - freq_word;
 
 wire [PH_W-2:0] ramp;

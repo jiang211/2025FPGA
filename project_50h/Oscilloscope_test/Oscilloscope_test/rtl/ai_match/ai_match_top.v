@@ -77,6 +77,19 @@ wire [7:0] tri_wave_270;
 wire [7:0] sqr_wave;
 wire [7:0] dsqr_wave;
 
+reg [31:0] SAD_FREQ;
+reg [31:0] cycle_num;
+
+always @(posedge clk) begin
+    if (!rst_n) begin
+        SAD_FREQ <= 0;
+        cycle_num <= 0;
+    end else begin
+        SAD_FREQ <= (CLK_FREQ>>2) / (amplitude-128);
+        cycle_num <= CLK_FREQ/freq_word >> 1;
+
+    end
+end
 triangle_dds #(
     .CLK_FREQ(CLK_FREQ)
 ) dut0 (
@@ -85,6 +98,8 @@ triangle_dds #(
 
     .freq_word(freq_word),
     .amplitude(amplitude),
+    .SAD_FREQ(SAD_FREQ),
+
     .wave_out(tri_wave),
     .wave_out_270(tri_wave_270)
 
@@ -99,7 +114,8 @@ sqr_wave_gen #(
     
     .freq_word(freq_word),
     .amplitude(amplitude),
-    .cycle_num(CLK_FREQ/freq_word >> 1),
+    .cycle_num(cycle_num),
+    .SAD_FREQ(SAD_FREQ),
 
     .sel_phase(0),
     .wave_out(sqr_wave)
@@ -116,7 +132,8 @@ sqr_wave_gen #(
     
     .freq_word(freq_word),
     .amplitude((amplitude -128) * freq_word / (CLK_FREQ >> 2) +128),
-    .cycle_num((CLK_FREQ/freq_word) >> 1),
+    .cycle_num(cycle_num),
+    .SAD_FREQ(SAD_FREQ),
 
     .sel_phase(0),
     .wave_out(dsqr_wave)
