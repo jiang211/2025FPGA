@@ -20,7 +20,7 @@ parameter DEPTH      = 64;     // 三角波一个周期采样点�?
 parameter CLK_FREQ = 32'd50_000_000;
 
 
-wire [31:0] SAD_FREQ = (CLK_FREQ>>2) / (amplitude-128);
+wire [31:0] SAD_FREQ = CLK_FREQ / 512;
      
 
 // -----------------------------------------------------------
@@ -67,7 +67,7 @@ end
 initial begin
     valid = 0;
     rst_n = 0;
-    freq_word = 32'd500000;
+    freq_word = 32'd1000000;
     amplitude = 16'd159;
     repeat(10) @(posedge clk);
     rst_n = 1;
@@ -165,7 +165,7 @@ reg [1:0]  wave_signal;
 wire [7: 0]wave_choose;
 assign wave_choose = (wave_signal == 0) ? tri_wave : (wave_signal == 1) ? sqr_wave : sin_wave;
 // reg wave_in;
-top top (
+ai_match_top top (
     .clk(clk),
     .rst_n(rst_n),
 

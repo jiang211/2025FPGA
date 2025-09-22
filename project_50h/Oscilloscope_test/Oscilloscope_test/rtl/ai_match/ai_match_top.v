@@ -83,7 +83,7 @@ always @(posedge clk) begin
         SAD_FREQ <= 0;
         cycle_num <= 0;
     end else begin
-        SAD_FREQ <= (CLK_FREQ>>2) / (amplitude-128);
+        SAD_FREQ <= CLK_FREQ / 512;
         cycle_num <= CLK_FREQ/freq_word >> 1;
 
     end
@@ -103,14 +103,14 @@ easy_divider div1 (
 wire [7:0] tri_ini;
 wire [7:0] sin_ini;
 tri_lut tri_lut0(
-    .addr(addr),
+    .addr(addr - 4),
     .data(tri_ini)
 );
 
 
 sqr_lut sqr_lut0(
     .addr(addr),
-    .sel_signal(0),
+    .sel_signal(1),
     .amplitude(amplitude),
     .data(sqr_wave)
 );
