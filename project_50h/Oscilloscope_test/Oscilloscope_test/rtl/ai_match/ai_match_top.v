@@ -35,7 +35,7 @@ always @(posedge clk) begin
             START_MATCHING : begin
 
              cycle_cnt <= cycle_cnt + 1;
-             if(cycle_cnt == 255) matching_gate <= FINISH_MATCHING;   
+             if(cycle_cnt == ((CLK_FREQ / freq_word) * 2)) matching_gate <= FINISH_MATCHING;   
 
             end
             FINISH_MATCHING : begin
