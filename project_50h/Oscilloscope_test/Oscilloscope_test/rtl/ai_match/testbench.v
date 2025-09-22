@@ -165,18 +165,28 @@ reg [1:0]  wave_signal;
 wire [7: 0]wave_choose;
 assign wave_choose = (wave_signal == 0) ? tri_wave : (wave_signal == 1) ? sqr_wave : sin_wave;
 // reg wave_in;
-ai_match_top top (
+// ai_match_top top (
+//     .clk(clk),
+//     .rst_n(rst_n),
+
+//     .freq_word(freq_word),
+//     .amplitude(amplitude),
+//     .gate(gate),
+//     .wave_in(wave_choose),
+//     .wave_type(wave_type)
+
+// );
+
+
+wire [7:0] duty ;
+duty_top duty0(
     .clk(clk),
-    .rst_n(rst_n),
+    .rst_n(gate),
 
-    .freq_word(freq_word),
+    .wave_in(sqr_wave),
     .amplitude(amplitude),
-    .gate(gate),
-    .wave_in(wave_choose),
-    .wave_type(wave_type)
-
+    .duty(duty)
 );
-
 
 // 组合逻辑：cnt 0~255 上升�?256~511 下降
 
