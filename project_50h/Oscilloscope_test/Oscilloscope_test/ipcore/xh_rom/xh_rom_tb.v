@@ -1,5 +1,3 @@
-// Created by IP Generator (Version 2022.1 build 99559)
-
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -35,7 +33,7 @@ localparam RESET_TYPE = "ASYNC" ; // @IPC enum Sync_Internally,SYNC,ASYNC
 
 localparam POWER_OPT = 0 ; // @IPC bool
 
-localparam INIT_FILE = "D:/2024FPGApackage/2024FPGApackage/Oscilloscope_test/Oscilloscope_test/doc/xh.dat" ; // @IPC string
+localparam INIT_FILE = "E:/2025FPGA/project_50h/Oscilloscope_test/Oscilloscope_test/doc/cangshu.dat" ; // @IPC string
 
 localparam INIT_FORMAT = "HEX" ; // @IPC enum BIN,HEX
 

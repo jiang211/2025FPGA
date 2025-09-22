@@ -51,18 +51,26 @@ module top(
     output            de_out        ,
     output     [15:0] rgb_data,
     output         beef     ,
-output  [7:0]ad_data2,   
-output  [7:0]ad_data   ,
+
 output [7:0] test,
-output spike
+output [7:0] test1,
+output spike_replace_sum,
+output spike_replace_x3,
+output spike_replace_sum1,
+output spike_replace_x31,
+output spike1,
+output [10:0] v1,
+output [10:0] v2
  );
+
 assign lcd_bl = 1'b1;
 parameter   X_WIDTH = 4'd12;
 parameter   Y_WIDTH = 4'd12;    
 wire [7:0] ad_data_hsst;
 wire [15:0] rgb_data_pa;
 wire [31:0] xh_control;
-
+wire [31:0]inu3_data;
+wire [31:0]inu2_data;
 optical_fiber_top u0(
     .i_free_clk                                 (   sys_clk             ),
     .rst_n                                      (rst_n                  ),
@@ -110,10 +118,10 @@ optical_fiber_top u0(
     .wfifo3_wr_full                             (                   ),//�����źţ����Բ���
     .wfifo3_almost_full                         (                   ),
     .almost_empty3                              (                   ),     
-    .inu2_clk_last                              (             ),
+    .inu2_clk_last                              (  ad_clk    ),
     .inu2_rstn_last                             (  !rst_n       ),   
     .rd2_en_last                                (  1'b1           ),
-    .rd2_data_last                              (             ),
+    .rd2_data_last                              (  inu2_data   ),
     .almost_empty_last2                         (                   ),
     .inu3_clk_last                              (   ad_clk         ),
     .inu3_rstn_last                             (  !rst_n         ),   
@@ -124,22 +132,18 @@ optical_fiber_top u0(
     .k2                                         (                   ),
     .k3                                         (                   )   
 );
-assign test = inu3_data;
+assign test = inu3_data[11:4];
+assign test1 = inu3_data[23:16];
 wire clk_a;
 wire clk_b;
 assign clk_a = inu3_clk;
 assign clk_b = ~clk_a;
-// reg [7:0] ad_data;
-// reg [7:0] ad_data2;
-    // always @(posedge cha_clk) begin
-    //     if(inu3_data[8]) ad_data2 <= inu3_data[7:0];
-    //     else ad_data <= inu3_data[7:0];
-    // end
-wire [7:0] ad_data;
-wire [7:0] ad_data2;
-assign ad_data = inu3_data[7:0];
-assign ad_data2 = 8'd128;;
-wire [15:0]inu3_data;
+
+wire [11:0] ad_data;
+wire [11:0] ad_data2;
+assign ad_data = inu3_data[11:0];
+assign ad_data2 = inu3_data[23:12];
+
 wire cha_clk;
 wire inu3_clk;
 //assign led = ad_data2;
@@ -291,6 +295,8 @@ wire [2:0] p_x2;
 wire [4:0] p_y;
 wire zon;
 wire cz;
+
+wire [10:0] targe_fre,targe_vpp;
 //assign led = data[7:0];
 touch_data_hd  u_touch_hd(
     .clk                (sys_clk),
@@ -301,6 +307,8 @@ touch_data_hd  u_touch_hd(
     .x                  (x),
     .y                  (y)          ,
     .xh_control         (xh_control),
+    .targe_fre          (targe_fre),
+    .targe_vpp          (targe_vpp),
     .fft_                (fft),
     .stop_               (stop),
     .td1_                (td1),
@@ -352,26 +360,45 @@ wire clk_20M,clk_40M,clk_60M,clk_80M,clk_100M;
     data_quant u_data_quant1(
         .clk(sys_clk),
         .rst(locked),
-        .data_in(ad_data2),
+        .data_in(ad_data2[11:4]),
         .max(max1),
         .min(min1),
-        .v(v1)
+        //.v(v1),
+        .spike_replace_sum (spike_replace_sum1),
+        .spike_replace_x3   (spike_replace_x31)
     );
 
     data_quant u_data_quant2(
         .clk(sys_clk),
         .rst(locked),
-        .data_in(ad_data),
+        .data_in(ad_data[11:4]),
         .max(max2),
         .min(min2),
-        .v(v2),
-        .spike (spike)
+        //.v(v2),
+        .spike_replace_sum (spike_replace_sum),
+        .spike_replace_x3   (spike_replace_x3)
     );
+
+    voltage_quant u_voltage_quant1(
+        .clk                 (sys_clk),
+        .rst                 (locked),
+        .data_in             (ad_data),
+        .volt_out            (v2)
+    );
+
+    voltage_quant u_voltage_quant2(
+        .clk                 (sys_clk),
+        .rst                 (locked),
+        .data_in             (ad_data2),
+        .volt_out            (v1)
+    );
+
+
     wire gate_n1,gate_n2;
     fre_quant u_fre_quant1(
         .clk(sys_clk),
         .rst(locked),
-        .data_in(ad_data2),
+        .data_in(ad_data2[11:4]),
         .gate_n (gate_n1),
         .fre(fre1)
     );
@@ -379,21 +406,30 @@ wire clk_20M,clk_40M,clk_60M,clk_80M,clk_100M;
     fre_quant u_fre_quant2(
         .clk(sys_clk),
         .rst(locked),
-        .data_in(ad_data),
+        .data_in(ad_data[11:4]),
         .gate_n (gate_n2),
         .fre(fre2)
     );
-
+    wire [7:0] data_match;
+    soft_clip_8 u_soft_clip_8_1(
+    .clk                    (sys_clk           ),
+    .rst_n                  (locked        ),
+    .din                    (ad_data[11:4]),
+    .dout                   (data_match)
+   // .spike                  (spike1)
+);
+    wire [1:0] choose;
+    assign led = choose;
     ai_match_top u_ai_match_top(
         .clk            (sys_clk  ),
         .rst_n          (locked   ),
         .gate           (gate_n2  ),
-        .freq_word      (fre2),
+        .freq_word      (fre2 * 1000),
         .amplitude      (max2),  // 峰值（正数）
   
 
-        .wave_in        (ad_data),
-        .wave_type      (led)
+        .wave_in        (data_match),
+        .wave_type      (choose)
     );
     wire [7:0] cz_data;
     
@@ -424,7 +460,7 @@ wire clk_20M,clk_40M,clk_60M,clk_80M,clk_100M;
 /********************************例化************************************/
 //fft
 wire [7:0] f_dt;
-assign f_dt = (td2 == 1) ? ad_data2 : ad_data; 
+assign f_dt = (td2 == 1) ? ad_data2[11:4] : ad_data[11:4]; 
     assign fft_data_in = {7'b0,f_dt};
     fft_top #(
         .DATAIN_WIDTH    (DATAIN_WIDTH     ),                           
@@ -543,7 +579,8 @@ assign f_dt = (td2 == 1) ? ad_data2 : ad_data;
         .i_vs          (vs_out_bg  ) ,                        
         .i_de          (de_out_bg  ) ,    
         .fre1          (fre1          ) ,                                                     
-        .fre2          (fre2          ) ,                                                     
+        .fre2          (fre2          ) ,   
+        .choose        (choose        ),                                                  
         .i_data        (rgb_data_pa ) ,                          
         .o_hs          (hs_out_c        ) ,                        
         .o_vs          (vs_out_c        ) ,                        
@@ -613,7 +650,7 @@ wire [15:0] rgb_data_d2;
     .n_almost_empty         ()
 );
 
-    assign cz_data = (cz == 1'b1) ? wave_data_dis1 : ad_data2;
+    assign cz_data = (cz == 1'b1) ? wave_data_dis1 : ad_data2[11:4];
     wav_display1  #(
         .H_ACT                (  H_ACT                ),
         .V_ACT                (  V_ACT                )
@@ -623,7 +660,7 @@ wire [15:0] rgb_data_d2;
         .pclk          (pix_clk      ) ,                         
         .wave_color    (wav1_color) ,// wave color                              
         .clk           (ad_clk    ) ,                           
-        .data          (ad_data) ,     
+        .data          (ad_data[11:4]) ,     
         .amp_h         (amp_h1) ,   
         .d_clk         (d_clk), 
         .p_x           (p_x11), 
@@ -717,35 +754,38 @@ wire [15:0] rgb_data_lj;
     //     .rgb_data                           (rgb_data_xh)
     // );
 
-    // lj_bg # (
-    //     .COCLOR_DEPP(  8                    ), // number of bits per channel
-    //     .X_BITS    (  X_WIDTH              ),  
-    //     .Y_BITS    (  Y_WIDTH              ),  
-    //     .H_ACT     (  H_ACT                ),
-    //     .V_ACT      (  V_ACT                )  
-    // )
-    // u_lj(                                       
-    //     .rstn                               (locked), 
-    //     .pix_clk                            (pix_clk),
-    //     .act_x                              (act_x),
-    //     .act_y                              (act_y),
-    //     .vs_in                              (vs), 
-    //     .hs_in                              (hs), 
-    //     .de_in                              (de),
-    //     .vs_out                             (vs_out_lj), 
-    //     .hs_out                             (hs_out_lj), 
-    //     .de_out                             (de_out_lj),
-    //     .rgb_data                           (rgb_data_lj)
-    // );
+    lj_bg # (
+        .COCLOR_DEPP(  8                    ), // number of bits per channel
+        .X_BITS    (  X_WIDTH              ),  
+        .Y_BITS    (  Y_WIDTH              ),  
+        .H_ACT     (  H_ACT                ),
+        .V_ACT      (  V_ACT                )  
+    )
+    u_lj(                                       
+        .rstn                               (locked), 
+        .pix_clk                            (pix_clk),
+        .clk                                (sys_clk),
+        .act_x                              (act_x),
+        .act_y                              (act_y),
+        .targe_fre                           (targe_fre),
+        .targe_vpp                           (targe_vpp),
+        .vs_in                              (vs), 
+        .hs_in                              (hs), 
+        .de_in                              (de),
+        .vs_out                             (vs_out_lj), 
+        .hs_out                             (hs_out_lj), 
+        .de_out                             (de_out_lj),
+        .rgb_data                           (rgb_data_lj)
+    );
     assign rgb_data = //(Interface_control == 3'b1)? rgb_data_xh   : 
                       (Interface_control == 3'd2)? rgb_data_sbq  :
-                      //(Interface_control == 3'd3)? rgb_data_lj :
+                      (Interface_control == 3'd3)? rgb_data_lj :
                       (Interface_control == 3'd4)? rgb_out_f :
                       (Interface_control == 3'd0)? rgb_data_main :
                                                    rgb_data_main ;
     assign {vs_out, hs_out, de_out} = //(Interface_control == 3'b1) ? {vs_out_xh, hs_out_xh, de_out_xh}       : 
                                       (Interface_control == 3'd2) ? {vs_out_w, hs_out_w, de_out_w}       :
-                                      //(Interface_control == 3'd3) ? {vs_out_lj, hs_out_lj, de_out_lj}       :
+                                      (Interface_control == 3'd3) ? {vs_out_lj, hs_out_lj, de_out_lj}       :
                                       (Interface_control == 3'd4)? {vs_out_fft, hs_out_fft, de_out_fft} :
                                                                 {vs_out_main, hs_out_main, de_out_main}  ;
 

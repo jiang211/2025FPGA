@@ -1,3 +1,4 @@
+
 //////////////////////////////////////////////////////////////////////////////
 //
 // Copyright (c) 2014 PANGO MICROSYSTEMS, INC
@@ -18,7 +19,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-module ipml_fifo_ctrl_v1_3 #(
+module ipml_fifo_ctrl_v1_4_rfifo #(
 
   parameter  c_WR_DEPTH_WIDTH   = 9             ,           // write address width 9 -- 20
   parameter  c_RD_DEPTH_WIDTH   = 9             ,           // read address width  9 -- 20
@@ -47,8 +48,10 @@ module ipml_fifo_ctrl_v1_3 #(
 //**************************************************************************************************************
 //declare inner variables
   //write address operation variables
-reg [c_WR_DEPTH_WIDTH : 0]  wptr            ;          //write pointer
-reg [c_RD_DEPTH_WIDTH : 0]  wrptr1          ;          //1st read-domain to write-domain synchronizer
+//write pointer
+reg [c_WR_DEPTH_WIDTH : 0]  wptr                      /* synthesis syn_preserve=1 */ ; 
+//1st read-domain to write-domain synchronizer
+reg [c_RD_DEPTH_WIDTH : 0]  wrptr1                    /* synthesis syn_preserve=1 */ ;
 reg [c_RD_DEPTH_WIDTH : 0]  wrptr2          ;          //2nd read-domain to write-domain synchronizer
 reg [c_WR_DEPTH_WIDTH : 0]  wbin            ;          //write current binary  pointer
 reg [c_WR_DEPTH_WIDTH : 0]  wbnext          ;          //write next binary  pointer
@@ -58,8 +61,10 @@ reg                         waddr_msb       ;          //the MSB of waddr
 //wire                        wrptr2_2ndmsb   ;          //the second MSB of wrptr2
 
 //read address operation variables
-reg [c_RD_DEPTH_WIDTH : 0]  rptr            ;          //read pointer
-reg [c_WR_DEPTH_WIDTH : 0]  rwptr1          ;          //1st  write-domain to read-domain synchronizer
+//read pointer
+reg [c_RD_DEPTH_WIDTH : 0]  rptr                      /* synthesis syn_preserve=1 */  ;
+//1st  write-domain to read-domain synchronizer
+reg [c_WR_DEPTH_WIDTH : 0]  rwptr1                    /* synthesis syn_preserve=1 */  ;
 reg [c_WR_DEPTH_WIDTH : 0]  rwptr2          ;          //2nd  write-domain to read-domain synchronizer
 reg [c_RD_DEPTH_WIDTH : 0]  rbin            ;          //read current binary  pointer
 reg [c_RD_DEPTH_WIDTH : 0]  rbnext          ;          //read next binary  pointer
@@ -379,17 +384,3 @@ begin
 end
 
 endmodule
-
-
-
-
-
-
-
-
-
-
-
-
-
-

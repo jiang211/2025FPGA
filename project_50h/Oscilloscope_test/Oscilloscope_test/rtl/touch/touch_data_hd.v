@@ -3,6 +3,8 @@ module touch_data_hd (
     input wire reset,
     input wire [31:0] data_in,
     output reg [2:0]Interface_control,
+    output reg [10:0] targe_fre,
+    output reg [10:0] targe_vpp,
     output wire rest,
     //output wire [7:0] led,
     output wire [15:0] x,
@@ -77,9 +79,9 @@ always@(posedge clk or negedge reset) begin
         Interface_control <= 3'd1;
     end */else if(x >= 'd390 && x <= 'd630 && y >= 'd200 && y <= 'd448 && Interface_control == 3'd0) begin
         Interface_control <= 3'd2;
-    end /*else if(x >= 'd705 && x <= 'd945 && y >= 'd200 && y <= 'd448 && Interface_control == 3'd0) begin
+    end else if(x >= 'd705 && x <= 'd945 && y >= 'd200 && y <= 'd448 && Interface_control == 3'd0) begin
         Interface_control <= 3'd3;
-    end */else if (fft_pos_edge) begin
+    end else if (fft_pos_edge) begin
         Interface_control <= 3'd4;
     end else if(rest) begin
         Interface_control <= 3'd0;
@@ -92,7 +94,7 @@ end
 
 assign rest = ((Interface_control == 3'd2) && (x >= H_ACT/5 + H_ACT/5 + H_ACT/5) && (x <= H_ACT - H_ACT/5) && (y >= 0) && (y <= V_ACT/6)) ||
               ((Interface_control == 3'd1) && (x >= 768) && (x <= H_ACT) && (y >= 0) && (y <= V_ACT/3)) ||
-              ((Interface_control == 3'd3) && (x >= 768) && (x <= H_ACT) && (y >= 0) && (y <= V_ACT/3));
+              ((Interface_control == 3'd3) && (x >= H_ACT/5 ) && (x <= H_ACT/5 + H_ACT/5) && (y >= 0) && (y <= V_ACT/6));
 wire fft_rst;
 assign fft_rst = ((Interface_control == 3'd4) && (x >= H_ACT - H_ACT/5) && (x <= H_ACT) && (y >= 0) && (y <= V_ACT/6));
 
@@ -403,6 +405,419 @@ assign p_x2_ = p_x2;
 assign p_y_ = p_y;
 assign cz_ = cz;
 assign xh_control = {{18{1'b0}},amp_, fre_1_, fre_2_, select_};
+
+wire vpp_click_0, vpp_click_1, vpp_click_2, vpp_click_3, vpp_click_4, vpp_click_5, vpp_click_6, vpp_click_7, vpp_click_8, vpp_click_9;
+wire fre_click_0, fre_click_1, fre_click_2, fre_click_3, fre_click_4, fre_click_5, fre_click_6, fre_click_7, fre_click_8, fre_click_9;
+wire reset_data_click;
+
+assign reset_data_click = (Interface_control == 3'd3) && ((x >= (H_ACT/5 + H_ACT/5 + H_ACT/5 + 'd55)) && (x <= (H_ACT - H_ACT/5 - 'd55)) && (y >= 'd28	   ) && (y <= V_ACT/6 - 28));
+
+assign fre_click_1 = ((Interface_control == 3'd3) && ((x >= (H_ACT/5 + H_ACT/5 + H_ACT/5 + 'd30)) && (x <= (H_ACT/5 + H_ACT/5 + H_ACT/5 + H_ACT/15 + H_ACT/15 - 'd30)) && (y >= V_ACT/6 + 28) && (y <= V_ACT/3 - 28 )));
+assign fre_click_2 = ((Interface_control == 3'd3) && ((x >= (H_ACT/5 + H_ACT/5 + H_ACT/5 + H_ACT/15 + H_ACT/15 + 'd30)) && (x <= (H_ACT/5 + H_ACT/5 + H_ACT/5 + H_ACT/5 + H_ACT/15 - 'd30)) && (y >= V_ACT/6 + 28) && (y <= V_ACT/3 - 28 )));
+assign fre_click_3 = ((Interface_control == 3'd3) && ((x >= (H_ACT/5 + H_ACT/5 + H_ACT/5 + H_ACT/5 + H_ACT/15 + 'd30)) && (x <= (H_ACT - 'd30)) && (y >= V_ACT/6 + 28) && (y <= V_ACT/3 - 28 )));
+assign fre_click_4 = ((Interface_control == 3'd3) && ((x >= (H_ACT/5 + H_ACT/5 + H_ACT/5 + 'd30)) && (x <= (H_ACT/5 + H_ACT/5 + H_ACT/5 + H_ACT/15 + H_ACT/15 - 'd30)) && (y >= V_ACT/3 + 28) && (y <= V_ACT/6 + V_ACT/3 - 28 )));
+assign fre_click_5 = ((Interface_control == 3'd3) && ((x >= (H_ACT/5 + H_ACT/5 + H_ACT/5 + H_ACT/15 + H_ACT/15 + 'd30)) && (x <= (H_ACT/5 + H_ACT/5 + H_ACT/5 + H_ACT/5 + H_ACT/15 - 'd30)) && (y >= V_ACT/3 + 28) && (y <= V_ACT/6 + V_ACT/3 - 28 )));
+assign fre_click_6 = ((Interface_control == 3'd3) && ((x >= (H_ACT/5 + H_ACT/5 + H_ACT/5 + H_ACT/5 + H_ACT/15 + 'd30)) && (x <= (H_ACT - 'd30)) && (y >= V_ACT/3 + 28) && (y <= V_ACT/6 + V_ACT/3 - 28 )));
+assign fre_click_7 = ((Interface_control == 3'd3) && ((x >= (H_ACT/5 + H_ACT/5 + H_ACT/5 + 'd30)) && (x <= (H_ACT/5 + H_ACT/5 + H_ACT/5 + H_ACT/15 + H_ACT/15 - 'd30)) && (y >= V_ACT/2 + 28) && (y <= V_ACT/3 + V_ACT/3 - 28 )));
+assign fre_click_8 = ((Interface_control == 3'd3) && ((x >= (H_ACT/5 + H_ACT/5 + H_ACT/5 + H_ACT/15 + H_ACT/15 + 'd30)) && (x <= (H_ACT/5 + H_ACT/5 + H_ACT/5 + H_ACT/5 + H_ACT/15 - 'd30)) && (y >= V_ACT/2 + 28) && (y <= V_ACT/3 + V_ACT/3 - 28 )));
+assign fre_click_9 = ((Interface_control == 3'd3) && ((x >= (H_ACT/5 + H_ACT/5 + H_ACT/5 + H_ACT/5 + H_ACT/15 + 'd30)) && (x <= (H_ACT - 'd30)) && (y >= V_ACT/2 + 28) && (y <= V_ACT/3 + V_ACT/3 - 28 )));
+assign fre_click_0 = ((Interface_control == 3'd3) && ((x >= (H_ACT/5 + H_ACT/5 + H_ACT/5 + H_ACT/15 + H_ACT/15 + 'd30)) && (x <= (H_ACT/5 + H_ACT/5 + H_ACT/5 + H_ACT/5 + H_ACT/15 - 'd30)) && (y >= V_ACT/3 + V_ACT/3 + 28) && (y <= V_ACT/3 + V_ACT/2 - 28 )));
+
+assign vpp_click_1 = ((Interface_control == 3'd3) && ((x >= ('d30)) && (x <= (H_ACT/15 + H_ACT/15 - 'd30)) && (y >= V_ACT/6 + 28) && (y <= V_ACT/3 - 28 )));
+assign vpp_click_2 = ((Interface_control == 3'd3) && ((x >= (H_ACT/15 + H_ACT/15 + 'd30)) && (x <= (H_ACT/5 + H_ACT/15 - 'd30)) && (y >= V_ACT/6 + 28) && (y <= V_ACT/3 - 28 )));
+assign vpp_click_3 = ((Interface_control == 3'd3) && ((x >= (H_ACT/5 + H_ACT/15 + 'd30)) && (x <= (H_ACT/5 + H_ACT/5 - 'd30)) && (y >= V_ACT/6 + 28) && (y <= V_ACT/3 - 28 )));
+assign vpp_click_4 = ((Interface_control == 3'd3) && ((x >= ('d30)) && (x <= (H_ACT/15 + H_ACT/15 - 'd30)) && (y >= V_ACT/3 + 28) && (y <= V_ACT/6 + V_ACT/3 - 28 )));
+assign vpp_click_5 = ((Interface_control == 3'd3) && ((x >= (H_ACT/15 + H_ACT/15 + 'd30)) && (x <= (H_ACT/5 + H_ACT/15 - 'd30)) && (y >= V_ACT/3 + 28) && (y <= V_ACT/6 + V_ACT/3 - 28 )));
+assign vpp_click_6 = ((Interface_control == 3'd3) && ((x >= (H_ACT/5 + H_ACT/15 + 'd30)) && (x <= (H_ACT/5 + H_ACT/5 - 'd30)) && (y >= V_ACT/3 + 28) && (y <= V_ACT/6 + V_ACT/3 - 28 )));
+assign vpp_click_7 = ((Interface_control == 3'd3) && ((x >= ('d30)) && (x <= (H_ACT/15 + H_ACT/15 - 'd30)) && (y >= V_ACT/2 + 28) && (y <= V_ACT/3 + V_ACT/3 - 28 )));
+assign vpp_click_8 = ((Interface_control == 3'd3) && ((x >= (H_ACT/15 + H_ACT/15 + 'd30)) && (x <= (H_ACT/5 + H_ACT/15 - 'd30)) && (y >= V_ACT/2 + 28) && (y <= V_ACT/3 + V_ACT/3 - 28 )));
+assign vpp_click_9 = ((Interface_control == 3'd3) && ((x >= (H_ACT/5 + H_ACT/15 + 'd30)) && (x <= (H_ACT/5 + H_ACT/5 - 'd30)) && (y >= V_ACT/2 + 28) && (y <= V_ACT/3 + V_ACT/3 - 28 )));
+assign vpp_click_0 = ((Interface_control == 3'd3) && ((x >= (H_ACT/15 + H_ACT/15 + 'd30)) && (x <= (H_ACT/5 + H_ACT/15 - 'd30)) && (y >= V_ACT/3 + V_ACT/3 + 28) && (y <= V_ACT/3 + V_ACT/2 - 28 )));
+
+
+
+wire fre_click_1_pos_edge;
+wire fre_click_2_pos_edge;
+wire fre_click_3_pos_edge;
+wire fre_click_4_pos_edge;
+wire fre_click_5_pos_edge;
+wire fre_click_6_pos_edge;
+wire fre_click_7_pos_edge;
+wire fre_click_8_pos_edge;
+wire fre_click_9_pos_edge;
+wire fre_click_0_pos_edge;
+
+wire vpp_click_1_pos_edge;
+wire vpp_click_2_pos_edge;
+wire vpp_click_3_pos_edge;
+wire vpp_click_4_pos_edge;
+wire vpp_click_5_pos_edge;
+wire vpp_click_6_pos_edge;
+wire vpp_click_7_pos_edge;
+wire vpp_click_8_pos_edge;
+wire vpp_click_9_pos_edge;
+wire vpp_click_0_pos_edge;
+
+wire reset_data_click_pos_edge;
+
+reg fre_click_1_pulse_r1,fre_click_1_pulse_r2,fre_click_1_pulse_r3;
+reg fre_click_2_pulse_r1,fre_click_2_pulse_r2,fre_click_2_pulse_r3;
+reg fre_click_3_pulse_r1,fre_click_3_pulse_r2,fre_click_3_pulse_r3;
+reg fre_click_4_pulse_r1,fre_click_4_pulse_r2,fre_click_4_pulse_r3;
+reg fre_click_5_pulse_r1,fre_click_5_pulse_r2,fre_click_5_pulse_r3;
+reg fre_click_6_pulse_r1,fre_click_6_pulse_r2,fre_click_6_pulse_r3;
+reg fre_click_7_pulse_r1,fre_click_7_pulse_r2,fre_click_7_pulse_r3;
+reg fre_click_8_pulse_r1,fre_click_8_pulse_r2,fre_click_8_pulse_r3;
+reg fre_click_9_pulse_r1,fre_click_9_pulse_r2,fre_click_9_pulse_r3;
+reg fre_click_0_pulse_r1,fre_click_0_pulse_r2,fre_click_0_pulse_r3;
+
+reg vpp_click_1_pulse_r1,vpp_click_1_pulse_r2,vpp_click_1_pulse_r3;
+reg vpp_click_2_pulse_r1,vpp_click_2_pulse_r2,vpp_click_2_pulse_r3;
+reg vpp_click_3_pulse_r1,vpp_click_3_pulse_r2,vpp_click_3_pulse_r3;
+reg vpp_click_4_pulse_r1,vpp_click_4_pulse_r2,vpp_click_4_pulse_r3;
+reg vpp_click_5_pulse_r1,vpp_click_5_pulse_r2,vpp_click_5_pulse_r3;
+reg vpp_click_6_pulse_r1,vpp_click_6_pulse_r2,vpp_click_6_pulse_r3;
+reg vpp_click_7_pulse_r1,vpp_click_7_pulse_r2,vpp_click_7_pulse_r3;
+reg vpp_click_8_pulse_r1,vpp_click_8_pulse_r2,vpp_click_8_pulse_r3;
+reg vpp_click_9_pulse_r1,vpp_click_9_pulse_r2,vpp_click_9_pulse_r3;
+reg vpp_click_0_pulse_r1,vpp_click_0_pulse_r2,vpp_click_0_pulse_r3;
+
+reg reset_data_click_pulse_r1,reset_data_click_pulse_r2,reset_data_click_pulse_r3;
+
+always @(posedge clk) begin
+    fre_click_1_pulse_r1 <= fre_click_1;
+    fre_click_1_pulse_r2 <= fre_click_1_pulse_r1;
+    fre_click_1_pulse_r3 <= fre_click_1_pulse_r2;
+    fre_click_2_pulse_r1 <= fre_click_2;
+    fre_click_2_pulse_r2 <= fre_click_2_pulse_r1;
+    fre_click_2_pulse_r3 <= fre_click_2_pulse_r2;
+    fre_click_3_pulse_r1 <= fre_click_3;
+    fre_click_3_pulse_r2 <= fre_click_3_pulse_r1;
+    fre_click_3_pulse_r3 <= fre_click_3_pulse_r2;
+    fre_click_4_pulse_r1 <= fre_click_4;
+    fre_click_4_pulse_r2 <= fre_click_4_pulse_r1;
+    fre_click_4_pulse_r3 <= fre_click_4_pulse_r2;
+    fre_click_5_pulse_r1 <= fre_click_5;
+    fre_click_5_pulse_r2 <= fre_click_5_pulse_r1;
+    fre_click_5_pulse_r3 <= fre_click_5_pulse_r2;
+    fre_click_6_pulse_r1 <= fre_click_6;
+    fre_click_6_pulse_r2 <= fre_click_6_pulse_r1;
+    fre_click_6_pulse_r3 <= fre_click_6_pulse_r2;
+    fre_click_7_pulse_r1 <= fre_click_7;
+    fre_click_7_pulse_r2 <= fre_click_7_pulse_r1;
+    fre_click_7_pulse_r3 <= fre_click_7_pulse_r2;
+    fre_click_8_pulse_r1 <= fre_click_8;
+    fre_click_8_pulse_r2 <= fre_click_8_pulse_r1;
+    fre_click_8_pulse_r3 <= fre_click_8_pulse_r2;
+    fre_click_9_pulse_r1 <= fre_click_9;
+    fre_click_9_pulse_r2 <= fre_click_9_pulse_r1;
+    fre_click_9_pulse_r3 <= fre_click_9_pulse_r2;
+    fre_click_0_pulse_r1 <= fre_click_0;
+    fre_click_0_pulse_r2 <= fre_click_0_pulse_r1;
+    fre_click_0_pulse_r3 <= fre_click_0_pulse_r2;
+    
+    vpp_click_1_pulse_r1 <= vpp_click_1;
+    vpp_click_1_pulse_r2 <= vpp_click_1_pulse_r1;
+    vpp_click_1_pulse_r3 <= vpp_click_1_pulse_r2;
+    vpp_click_2_pulse_r1 <= vpp_click_2;
+    vpp_click_2_pulse_r2 <= vpp_click_2_pulse_r1;
+    vpp_click_2_pulse_r3 <= vpp_click_2_pulse_r2;
+    vpp_click_3_pulse_r1 <= vpp_click_3;
+    vpp_click_3_pulse_r2 <= vpp_click_3_pulse_r1;
+    vpp_click_3_pulse_r3 <= vpp_click_3_pulse_r2;
+    vpp_click_4_pulse_r1 <= vpp_click_4;
+    vpp_click_4_pulse_r2 <= vpp_click_4_pulse_r1;
+    vpp_click_4_pulse_r3 <= vpp_click_4_pulse_r2;
+    vpp_click_5_pulse_r1 <= vpp_click_5;
+    vpp_click_5_pulse_r2 <= vpp_click_5_pulse_r1;
+    vpp_click_5_pulse_r3 <= vpp_click_5_pulse_r2;
+    vpp_click_6_pulse_r1 <= vpp_click_6;
+    vpp_click_6_pulse_r2 <= vpp_click_6_pulse_r1;
+    vpp_click_6_pulse_r3 <= vpp_click_6_pulse_r2;
+    vpp_click_7_pulse_r1 <= vpp_click_7;
+    vpp_click_7_pulse_r2 <= vpp_click_7_pulse_r1;
+    vpp_click_7_pulse_r3 <= vpp_click_7_pulse_r2;
+    vpp_click_8_pulse_r1 <= vpp_click_8;
+    vpp_click_8_pulse_r2 <= vpp_click_8_pulse_r1;
+    vpp_click_8_pulse_r3 <= vpp_click_8_pulse_r2;
+    vpp_click_9_pulse_r1 <= vpp_click_9;
+    vpp_click_9_pulse_r2 <= vpp_click_9_pulse_r1;
+    vpp_click_9_pulse_r3 <= vpp_click_9_pulse_r2;
+    vpp_click_0_pulse_r1 <= vpp_click_0;
+    vpp_click_0_pulse_r2 <= vpp_click_0_pulse_r1;
+    vpp_click_0_pulse_r3 <= vpp_click_0_pulse_r2;
+
+    reset_data_click_pulse_r1 <= reset_data_click;
+    reset_data_click_pulse_r2 <= reset_data_click_pulse_r1;
+    reset_data_click_pulse_r3 <= reset_data_click_pulse_r2;
+end
+
+assign reset_data_click_pos_edge = ~reset_data_click_pulse_r2  & reset_data_click_pulse_r3;
+
+assign fre_click_1_pos_edge = ~fre_click_1_pulse_r2  & fre_click_1_pulse_r3;
+assign fre_click_2_pos_edge = ~fre_click_2_pulse_r2  & fre_click_2_pulse_r3;
+assign fre_click_3_pos_edge = ~fre_click_3_pulse_r2  & fre_click_3_pulse_r3;
+assign fre_click_4_pos_edge = ~fre_click_4_pulse_r2  & fre_click_4_pulse_r3;
+assign fre_click_5_pos_edge = ~fre_click_5_pulse_r2  & fre_click_5_pulse_r3;
+assign fre_click_6_pos_edge = ~fre_click_6_pulse_r2  & fre_click_6_pulse_r3;
+assign fre_click_7_pos_edge = ~fre_click_7_pulse_r2  & fre_click_7_pulse_r3;
+assign fre_click_8_pos_edge = ~fre_click_8_pulse_r2  & fre_click_8_pulse_r3;
+assign fre_click_9_pos_edge = ~fre_click_9_pulse_r2  & fre_click_9_pulse_r3;
+assign fre_click_0_pos_edge = ~fre_click_0_pulse_r2  & fre_click_0_pulse_r3;
+
+assign vpp_click_1_pos_edge = ~vpp_click_1_pulse_r2  & vpp_click_1_pulse_r3;
+assign vpp_click_2_pos_edge = ~vpp_click_2_pulse_r2  & vpp_click_2_pulse_r3;
+assign vpp_click_3_pos_edge = ~vpp_click_3_pulse_r2  & vpp_click_3_pulse_r3;
+assign vpp_click_4_pos_edge = ~vpp_click_4_pulse_r2  & vpp_click_4_pulse_r3;
+assign vpp_click_5_pos_edge = ~vpp_click_5_pulse_r2  & vpp_click_5_pulse_r3;
+assign vpp_click_6_pos_edge = ~vpp_click_6_pulse_r2  & vpp_click_6_pulse_r3;
+assign vpp_click_7_pos_edge = ~vpp_click_7_pulse_r2  & vpp_click_7_pulse_r3;
+assign vpp_click_8_pos_edge = ~vpp_click_8_pulse_r2  & vpp_click_8_pulse_r3;
+assign vpp_click_9_pos_edge = ~vpp_click_9_pulse_r2  & vpp_click_9_pulse_r3;
+assign vpp_click_0_pos_edge = ~vpp_click_0_pulse_r2  & vpp_click_0_pulse_r3;
+
+reg [10:0] targe_fre, targe_vpp;
+reg [4:0] targe_fre_cnt, targe_vpp_cnt;
+always @(posedge clk) begin
+    if(reset_data_click_pos_edge) begin
+        targe_fre <= 11'd0;
+        targe_fre_cnt <= 5'd0;
+    end
+    else if(fre_click_1_pos_edge) begin
+        if(targe_fre_cnt == 5'd0) begin
+            targe_fre <= targe_fre + 11'd100;
+        end
+        else if(targe_fre_cnt == 5'd1) begin
+            targe_fre <= targe_fre + 11'd10;
+        end
+        else if(targe_fre_cnt == 5'd2) begin
+            targe_fre <= targe_fre + 11'd1;
+        end
+        targe_fre_cnt <= targe_fre_cnt + 1;
+    end
+    else if(fre_click_2_pos_edge) begin
+        if(targe_fre_cnt == 5'd0) begin
+            targe_fre <= targe_fre + 11'd200;
+        end
+        else if(targe_fre_cnt == 5'd1) begin
+            targe_fre <= targe_fre + 11'd20;
+        end
+        else if(targe_fre_cnt == 5'd2) begin
+            targe_fre <= targe_fre + 11'd2;
+        end
+        targe_fre_cnt <= targe_fre_cnt + 1;
+    end
+    else if(fre_click_3_pos_edge) begin
+        if(targe_fre_cnt == 5'd0) begin
+            targe_fre <= targe_fre + 11'd300;
+        end
+        else if(targe_fre_cnt == 5'd1) begin
+            targe_fre <= targe_fre + 11'd30;
+        end
+        else if(targe_fre_cnt == 5'd2) begin
+            targe_fre <= targe_fre + 11'd3;
+        end
+        targe_fre_cnt <= targe_fre_cnt + 1;
+    end
+    else if(fre_click_4_pos_edge) begin
+        if(targe_fre_cnt == 5'd0) begin
+            targe_fre <= targe_fre + 11'd400;
+        end
+        else if(targe_fre_cnt == 5'd1) begin
+            targe_fre <= targe_fre + 11'd40;
+        end
+        else if(targe_fre_cnt == 5'd2) begin
+            targe_fre <= targe_fre + 11'd4;
+        end
+        targe_fre_cnt <= targe_fre_cnt + 1;
+    end
+    else if(fre_click_5_pos_edge) begin
+        if(targe_fre_cnt == 5'd0) begin
+            targe_fre <= targe_fre + 11'd500;
+        end
+        else if(targe_fre_cnt == 5'd1) begin
+            targe_fre <= targe_fre + 11'd50;
+        end
+        else if(targe_fre_cnt == 5'd2) begin
+            targe_fre <= targe_fre + 11'd5;
+        end
+        targe_fre_cnt <= targe_fre_cnt + 1;
+    end
+    else if(fre_click_6_pos_edge) begin
+        if(targe_fre_cnt == 5'd0) begin
+            targe_fre <= targe_fre + 11'd600;
+        end
+        else if(targe_fre_cnt == 5'd1) begin
+            targe_fre <= targe_fre + 11'd60;
+        end
+        else if(targe_fre_cnt == 5'd2) begin
+            targe_fre <= targe_fre + 11'd6;
+        end
+        targe_fre_cnt <= targe_fre_cnt + 1;
+    end
+    else if(fre_click_7_pos_edge) begin
+        if(targe_fre_cnt == 5'd0) begin
+            targe_fre <= targe_fre + 11'd700;
+        end
+        else if(targe_fre_cnt == 5'd1) begin
+            targe_fre <= targe_fre + 11'd70;
+        end
+        else if(targe_fre_cnt == 5'd2) begin
+            targe_fre <= targe_fre + 11'd7;
+        end
+        targe_fre_cnt <= targe_fre_cnt + 1; 
+    end
+    else if(fre_click_8_pos_edge) begin
+        if(targe_fre_cnt == 5'd0) begin
+            targe_fre <= targe_fre + 11'd800;
+        end
+        else if(targe_fre_cnt == 5'd1) begin
+            targe_fre <= targe_fre + 11'd80;
+        end
+        else if(targe_fre_cnt == 5'd2) begin
+            targe_fre <= targe_fre + 11'd8;
+        end
+        targe_fre_cnt <= targe_fre_cnt + 1;
+    end
+    else if(fre_click_9_pos_edge) begin
+        if(targe_fre_cnt == 5'd0) begin
+            targe_fre <= targe_fre + 11'd900;
+        end
+        else if(targe_fre_cnt == 5'd1) begin
+            targe_fre <= targe_fre + 11'd90;
+        end
+        else if(targe_fre_cnt == 5'd2) begin
+            targe_fre <= targe_fre + 11'd9;
+        end
+        targe_fre_cnt <= targe_fre_cnt + 1;
+    end
+    else begin
+        targe_fre_cnt <= targe_fre_cnt;
+        targe_fre <= targe_fre;
+    end
+end
+
+always @(posedge clk) begin
+    if(reset_data_click_pos_edge) begin
+        targe_vpp <= 11'd0;
+        targe_vpp_cnt <= 5'd0;
+    end
+    else if(vpp_click_1_pos_edge) begin
+        if(targe_vpp_cnt == 5'd0) begin
+            targe_vpp <= targe_vpp + 11'd100;
+        end
+        else if(targe_vpp_cnt == 5'd1) begin
+            targe_vpp <= targe_vpp + 11'd10;
+        end
+        else if(targe_vpp_cnt == 5'd2) begin
+            targe_vpp <= targe_vpp + 11'd1;
+        end
+        targe_vpp_cnt <= targe_vpp_cnt + 1;
+    end
+    else if(vpp_click_2_pos_edge) begin
+        if(targe_vpp_cnt == 5'd0) begin
+            targe_vpp <= targe_vpp + 11'd200;
+        end
+        else if(targe_vpp_cnt == 5'd1) begin
+            targe_vpp <= targe_vpp + 11'd20;
+        end
+        else if(targe_vpp_cnt == 5'd2) begin
+            targe_vpp <= targe_vpp + 11'd2;
+        end
+        targe_vpp_cnt <= targe_vpp_cnt + 1;
+    end
+    else if(vpp_click_3_pos_edge) begin
+        if(targe_vpp_cnt == 5'd0) begin
+            targe_vpp <= targe_vpp + 11'd300;
+        end
+        else if(targe_vpp_cnt == 5'd1) begin
+            targe_vpp <= targe_vpp + 11'd30;
+        end
+        else if(targe_vpp_cnt == 5'd2) begin
+            targe_vpp <= targe_vpp + 11'd3;
+        end
+        targe_vpp_cnt <= targe_vpp_cnt + 1;
+    end
+    else if(vpp_click_4_pos_edge) begin
+        if(targe_vpp_cnt == 5'd0) begin
+            targe_vpp <= targe_vpp + 11'd400;
+        end
+        else if(targe_vpp_cnt == 5'd1) begin
+            targe_vpp <= targe_vpp + 11'd40;
+        end
+        else if(targe_vpp_cnt == 5'd2) begin
+            targe_vpp <= targe_vpp + 11'd4;
+        end
+        targe_vpp_cnt <= targe_vpp_cnt + 1;
+    end
+    else if(vpp_click_5_pos_edge) begin
+        if(targe_vpp_cnt == 5'd0) begin
+            targe_vpp <= targe_vpp + 11'd500;
+        end
+        else if(targe_vpp_cnt == 5'd1) begin
+            targe_vpp <= targe_vpp + 11'd50;
+        end
+        else if(targe_vpp_cnt == 5'd2) begin
+            targe_vpp <= targe_vpp + 11'd5;
+        end
+        targe_vpp_cnt <= targe_vpp_cnt + 1;
+    end
+    else if(vpp_click_6_pos_edge) begin
+        if(targe_vpp_cnt == 5'd0) begin
+            targe_vpp <= targe_vpp + 11'd600;
+        end
+        else if(targe_vpp_cnt == 5'd1) begin
+            targe_vpp <= targe_vpp + 11'd60;
+        end
+        else if(targe_vpp_cnt == 5'd2) begin
+            targe_vpp <= targe_vpp + 11'd6;
+        end
+        targe_vpp_cnt <= targe_vpp_cnt + 1;
+    end
+    else if(vpp_click_7_pos_edge) begin
+        if(targe_vpp_cnt == 5'd0) begin
+            targe_vpp <= targe_vpp + 11'd700;
+        end
+        else if(targe_vpp_cnt == 5'd1) begin
+            targe_vpp <= targe_vpp + 11'd70;
+        end
+        else if(targe_vpp_cnt == 5'd2) begin
+            targe_vpp <= targe_vpp + 11'd7;
+        end
+        targe_vpp_cnt <= targe_vpp_cnt + 1; 
+    end
+    else if(vpp_click_8_pos_edge) begin
+        if(targe_vpp_cnt == 5'd0) begin
+            targe_vpp <= targe_vpp + 11'd800;
+        end
+        else if(targe_vpp_cnt == 5'd1) begin
+            targe_vpp <= targe_vpp + 11'd80;
+        end
+        else if(targe_vpp_cnt == 5'd2) begin
+            targe_vpp <= targe_vpp + 11'd8;
+        end
+        targe_vpp_cnt <= targe_vpp_cnt + 1;
+    end
+    else if(vpp_click_9_pos_edge) begin
+        if(targe_vpp_cnt == 5'd0) begin
+            targe_vpp <= targe_vpp + 11'd900;
+        end
+        else if(targe_vpp_cnt == 5'd1) begin
+            targe_vpp <= targe_vpp + 11'd90;
+        end
+        else if(targe_vpp_cnt == 5'd2) begin
+            targe_vpp <= targe_vpp + 11'd9;
+        end
+        targe_vpp_cnt <= targe_vpp_cnt + 1;
+    end
+    else begin
+        targe_vpp_cnt <= targe_vpp_cnt;
+        targe_vpp <= targe_vpp;
+    end
+end
+
+
+
 
 
 endmodule

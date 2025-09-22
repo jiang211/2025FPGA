@@ -43,22 +43,22 @@ assign char2_x = ((act_x >= (390)) && (act_x <= (630)) && (act_y >=300) && (act_
 assign char2_y = ((act_x >= (390)) && (act_x <= (630)) && (act_y >=300) && (act_y <=348))? act_y - 300 : 10'd0;
 assign ren2    = ((act_x >= (390)) && (act_x <= (630)) && (act_y >=300) && (act_y <=348))? 1'b0 : 1'b1;
 //逻辑分析仪
-// assign char3_x = ((act_x >= (705)) && (act_x <= (945)) && (act_y >=300) && (act_y <= 348))? act_x - 705 : 10'd0;
-// assign char3_y = ((act_x >= (705)) && (act_x <= (945)) && (act_y >=300) && (act_y <= 348))? act_y - 300 : 10'd0;
-// assign ren3    = ((act_x >= (705)) && (act_x <= (945)) && (act_y >=300) && (act_y <= 348))? 1'b0 : 1'b1;
+assign char3_x = ((act_x >= (705)) && (act_x <= (945)) && (act_y >=300) && (act_y <= 348))? act_x - 705 : 10'd0;
+assign char3_y = ((act_x >= (705)) && (act_x <= (945)) && (act_y >=300) && (act_y <= 348))? act_y - 300 : 10'd0;
+assign ren3    = ((act_x >= (705)) && (act_x <= (945)) && (act_y >=300) && (act_y <= 348))? 1'b0 : 1'b1;
 
 assign char_x = //(!ren1) ? char1_x :
                 (!ren2) ? char2_x :
-                //(!ren3) ? char3_x : 
+                (!ren3) ? char3_x : 
                 10'd0;
 
 assign char_y = //(!ren1) ? char1_y        :
                 (!ren2) ? char2_y + 'd48 :
-                //(!ren3) ? char3_y + 'd96 : 
+                (!ren3) ? char3_y + 'd96 : 
                 10'd0;
 
 //assign ren = (ren1 & ren2 & ren3) ? 1'b1 : 1'b0;
-assign ren = (ren2) ? 1'b1 : 1'b0;
+assign ren = (ren2 & ren3) ? 1'b1 : 1'b0;
 
 always@(posedge pix_clk)
 begin
