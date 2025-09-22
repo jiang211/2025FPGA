@@ -11,7 +11,6 @@ module divirative #(
 
     input [FIFO_WIDTH -1 : 0] wave_data,
     output reg [FIFO_WIDTH -1 : 0] fifo_dout,
-    output reg [9:0]circle_cnt,
     output reg output_valid
 
     );
@@ -29,7 +28,6 @@ module divirative #(
             fifo_dout <= 0 ;
 
 
-            circle_cnt <= 0;
             fifo_state <= IDLE;
             output_valid <= 0; 
 
@@ -41,7 +39,6 @@ module divirative #(
                         temp_wave_data <= wave_data;
 
                         fifo_state <= LOAD_WAVE;
-                        circle_cnt <= circle_cnt + 1;
                         output_valid <= 0; 
 
                     end
@@ -55,13 +52,11 @@ module divirative #(
                     output_valid <= 1; 
 
 
-                    circle_cnt <= circle_cnt + 1; 
 
                 end
 
                 default: begin
                     fifo_state<=IDLE;
-                    circle_cnt <= 0;
                     output_valid <= 0; 
 
                 end

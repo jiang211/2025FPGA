@@ -4,8 +4,8 @@
 //模板2为求导后的模板匹配
 
 module template_match #(
-    parameter  THRESHOLD0 = 10,
-    parameter THRESHOLD1 = 2
+    parameter  THRESHOLD0 = 7,
+    parameter THRESHOLD1 = 0
 ) (
     input clk,
     input rst_n,
@@ -28,7 +28,7 @@ reg  [9:0] tri_template_cnt0;        //模板1匹配
 reg  [9:0] tri_template_cnt1;        //模板2匹配
 reg  [9:0] sqr_template_cnt0;
 reg  [9:0] sqr_template_cnt1;
-wire [9:0] sin_template_cnt0;
+reg [9:0] sin_template_cnt0;
 reg  [9:0] sin_template_cnt1;
 
 always @(posedge clk )begin
@@ -37,6 +37,7 @@ always @(posedge clk )begin
         tri_template_cnt1 <= 512;
         sqr_template_cnt0 <= 512;
         sqr_template_cnt1 <= 512;
+        sin_template_cnt0 <= 512;
         sin_template_cnt1 <= 512;
 
     end
@@ -51,6 +52,11 @@ always @(posedge clk )begin
             if(sqr_template-wave_in <= THRESHOLD0 || wave_in - sqr_template <= THRESHOLD0)begin
                 sqr_template_cnt0 <= sqr_template_cnt0 + 1;
             end else sqr_template_cnt0 <= sqr_template_cnt0 - 2;
+
+            //正弦波匹配模板1匹配
+            if(sin_template-wave_in <= THRESHOLD0 || wave_in - sin_template <= THRESHOLD0)begin
+                sin_template_cnt0 <= sin_template_cnt0 + 1;
+            end else sin_template_cnt0 <= sin_template_cnt0 - 2;
 
             //三角波模板2匹配
             if(dtri_template-dwave_in <= THRESHOLD1 || dwave_in - dtri_template <= THRESHOLD1)begin
@@ -71,12 +77,12 @@ always @(posedge clk )begin
         tri_template_cnt1 <= 512;
         sqr_template_cnt0 <= 512;
         sqr_template_cnt1 <= 512;
+        sin_template_cnt0 <= 512;
         sin_template_cnt1 <= 512;
         end
     end
 end
 
-assign sin_template_cnt0 = tri_template_cnt0;
 
 
 localparam TRI_WAVE = 0;

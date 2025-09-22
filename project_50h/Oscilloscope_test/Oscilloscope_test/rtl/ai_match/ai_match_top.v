@@ -1,4 +1,4 @@
-module top #(
+module ai_match_top #(
     parameter CLK_FREQ = 32'd50_000_000,
     parameter PH_W = 32,
     parameter DT_W = 8
@@ -14,7 +14,7 @@ module top #(
     output [1:0] wave_type
 );
 
-localparam THRESHOLD = 4;
+localparam THRESHOLD = 2;
 
 localparam IDLE = 0;
 localparam START_MATCHING = 1;
@@ -59,7 +59,7 @@ end
 
 //对输入波形进行求导
 wire [7:0] dwave;
-divirative u_dut (
+divirative div0 (
     .clk_50M        (clk),
     .rst_n      (matching_gate),
 
@@ -67,15 +67,13 @@ divirative u_dut (
     .wave_data  (wave_in),
     .fifo_dout  (dwave),
 
-    .circle_cnt (circle_cnt),
     .output_valid(output_valid)
 );
 
 //产生一个三角波模板
 wire [7:0] tri_wave;
-wire [7:0] tri_wave_270;
 wire [7:0] sqr_wave;
-wire [7:0] dsqr_wave;
+wire [7:0] sin_wave;
 
 reg [31:0] SAD_FREQ;
 reg [31:0] cycle_num;
@@ -90,54 +88,123 @@ always @(posedge clk) begin
 
     end
 end
-triangle_dds #(
-    .CLK_FREQ(CLK_FREQ)
-) dut0 (
-    .clk(clk),
-    .rst_n(matching_gate),
 
+wire [8:0] addr;
+easy_divider div1 (
+    .rst_n    (matching_gate),
+    .clk      (clk), 
+
+    .addr     (addr),
     .freq_word(freq_word),
-    .amplitude(amplitude),
-    .SAD_FREQ(SAD_FREQ),
 
-    .wave_out(tri_wave),
-    .wave_out_270(tri_wave_270)
-
+    .divisor  (SAD_FREQ)
 );
+
+wire [7:0] tri_ini;
+wire [7:0] sin_ini;
+tri_lut tri_lut0(
+    .addr(addr),
+    .data(tri_ini)
+);
+
+
+sqr_lut sqr_lut0(
+    .addr(addr),
+    .sel_signal(0),
+    .amplitude(amplitude),
+    .data(sqr_wave)
+);
+
+sin_lut sin_lut0(
+    .addr(addr -128 - 32),
+    .data(sin_ini)
+);
+
+assign tri_wave = ((tri_ini * (amplitude-128)) >>7) + 128 - (amplitude-128);
+assign sin_wave = ((sin_ini * (amplitude-128)) >>7) + 128 - (amplitude-128);
+
+
+wire [7:0] dtri_wave;
+wire [7:0] dsin_wave;
+
+divirative div2 (
+    .clk_50M        (clk),
+    .rst_n      (matching_gate),
+
+    .valid      (matching_gate),
+    .wave_data  (sin_wave),
+    .fifo_dout  (dsin_wave),
+
+    .output_valid(output_valid)
+);
+
+
+divirative div3 (
+    .clk_50M        (clk),
+    .rst_n      (matching_gate),
+
+    .valid      (matching_gate),
+    .wave_data  (tri_wave),
+    .fifo_dout  (dtri_wave),
+
+    .output_valid(output_valid)
+);
+
+
+// sqr_lut sqr_lut1(
+//     .addr(addr),
+//     .sel_signal(1),
+//     .amplitude((amplitude -128) * freq_word / (CLK_FREQ >> 2) +128),
+//     .data(dtri_wave)
+// );
+
+// triangle_dds #(
+//     .CLK_FREQ(CLK_FREQ)
+// ) dut0 (
+//     .clk(clk),
+//     .rst_n(matching_gate),
+
+//     .freq_word(freq_word),
+//     .amplitude(amplitude),
+//     .SAD_FREQ(SAD_FREQ),
+
+//     .wave_out(tri_wave)
+
+// );
 
 //产生方波模板
-sqr_wave_gen #(
-    .CLK_FREQ(CLK_FREQ)
-) dut1 (
-    .clk(clk),
-    .rst_n(matching_gate),
+// sqr_wave_gen #(
+//     .CLK_FREQ(CLK_FREQ)
+// ) dut1 (
+//     .clk(clk),
+//     .rst_n(matching_gate),
     
-    .freq_word(freq_word),
-    .amplitude(amplitude),
-    .cycle_num(cycle_num),
-    .SAD_FREQ(SAD_FREQ),
+//     .freq_word(freq_word),
+//     .amplitude(amplitude),
+//     .cycle_num(cycle_num),
+//     .SAD_FREQ(SAD_FREQ),
 
-    .sel_phase(0),
-    .wave_out(sqr_wave)
-);
+//     .sel_phase(0),
+//     .wave_out(sqr_wave)
+// );
 
 //产生三角波的求导波
 
 
-sqr_wave_gen #(
-    .CLK_FREQ(CLK_FREQ)
-) dut2 (
-    .clk(clk),
-    .rst_n(matching_gate),
+// sqr_wave_gen #(
+//     .CLK_FREQ(CLK_FREQ)
+// ) dut2 (
+//     .clk(clk),
+//     .rst_n(matching_gate),
     
-    .freq_word(freq_word),
-    .amplitude((amplitude -128) * freq_word / (CLK_FREQ >> 2) +128),
-    .cycle_num(cycle_num),
-    .SAD_FREQ(SAD_FREQ),
+//     .freq_word(freq_word),
+//     .amplitude((amplitude -128) * freq_word / (CLK_FREQ >> 2) +128),
+//     .cycle_num(cycle_num),
+//     .SAD_FREQ(SAD_FREQ),
 
-    .sel_phase(0),
-    .wave_out(dsqr_wave)
-);
+//     .sel_phase(0),
+//     .wave_out(dtri_wave)
+// );
 //模板匹配
 template_match u_template_match (
     .clk        (clk),
@@ -148,9 +215,9 @@ template_match u_template_match (
 
     .tri_template (tri_wave),
     .sqr_template (sqr_wave),
-    .sin_template (tri_wave),
-    .dtri_template (dsqr_wave),
-    .dsin_template (tri_wave_270),
+    .sin_template (sin_wave),
+    .dtri_template (dtri_wave),
+    .dsin_template (dsin_wave),
 
     .wave_in    (wave_reg2),
     .dwave_in   (dwave),

@@ -50,7 +50,6 @@ divirative u_dut (
     .valid      (valid),
     .wave_data  (wave_out),
     .fifo_dout  (fifo_dout),
-    .circle_cnt (circle_cnt),
     .output_valid(output_valid)
 );
 
@@ -78,52 +77,93 @@ end
 // -----------------------------------------------------------
 // 三角波发生器
 // -----------------------------------------------------------
-triangle_dds  #(
-    .CLK_FREQ(CLK_FREQ)
-) dut0 (
-    .clk(clk),
-    .rst_n(rst_n),
+// triangle_dds  #(
+//     .CLK_FREQ(CLK_FREQ)
+// ) dut0 (
+//     .clk(clk),
+//     .rst_n(rst_n),
+//     .freq_word(freq_word),
+//     .amplitude(amplitude),
+//     .SAD_FREQ(SAD_FREQ),
+
+//     .wave_out(wave_out),
+//     .wave_out_270(wave_out_270)
+
+// );
+
+// sqr_wave_gen  #(
+//     .CLK_FREQ(CLK_FREQ)
+// ) dut1 (
+//     .clk(clk),
+//     .rst_n(rst_n),
+//     .freq_word(freq_word),
+//     .amplitude(amplitude),
+//     .cycle_num(CLK_FREQ/freq_word),
+//     .SAD_FREQ(SAD_FREQ),
+
+//     .sel_phase(0),
+//     .wave_out(wave_sqr)
+
+// );
+// sqr_wave_gen  #(
+//     .CLK_FREQ(CLK_FREQ)
+// ) dut2 (
+//     .clk(clk),
+//     .rst_n(rst_n),
+//     .freq_word(freq_word),
+//     .amplitude(amplitude),
+//     .cycle_num(CLK_FREQ/freq_word),
+//     .SAD_FREQ(SAD_FREQ),
+
+//     .sel_phase(1),
+//     .wave_out(wave_sqr_180)
+
+// );
+wire [8:0] addr ;
+easy_divider div0 (
+    .rst_n    (rst_n),
+    .clk      (clk), 
+
+    .addr     (addr),
     .freq_word(freq_word),
-    .amplitude(amplitude),
-    .SAD_FREQ(SAD_FREQ),
 
-    .wave_out(wave_out),
-    .wave_out_270(wave_out_270)
-
+    .divisor  (SAD_FREQ)
 );
 
-sqr_wave_gen  #(
-    .CLK_FREQ(CLK_FREQ)
-) dut1 (
-    .clk(clk),
-    .rst_n(rst_n),
-    .freq_word(freq_word),
-    .amplitude(amplitude),
-    .cycle_num(CLK_FREQ/freq_word),
-    .SAD_FREQ(SAD_FREQ),
+wire [7:0] tri_wave;
+wire [7:0] sqr_wave;
+wire [7:0] sin_wave;
 
-    .sel_phase(0),
-    .wave_out(wave_sqr)
-
+wire [7:0] tri_ini;
+wire [7:0] sin_ini;
+tri_lut tri_lut0(
+    .addr(addr),
+    .data(tri_ini)
 );
-sqr_wave_gen  #(
-    .CLK_FREQ(CLK_FREQ)
-) dut2 (
-    .clk(clk),
-    .rst_n(rst_n),
-    .freq_word(freq_word),
+
+
+sqr_lut sqr_lut0(
+    .addr(addr),
+    .sel_signal(1),
     .amplitude(amplitude),
-    .cycle_num(CLK_FREQ/freq_word),
-    .SAD_FREQ(SAD_FREQ),
-
-    .sel_phase(1),
-    .wave_out(wave_sqr_180)
-
+    .data(sqr_wave)
 );
+
+sin_lut sin_lut0(
+    .addr(addr),
+    .data(sin_ini)
+);
+
+assign tri_wave = ((tri_ini * (amplitude-128)) >>7) + 128 - (amplitude-128);
+assign sin_wave = ((sin_ini * (amplitude-128)) >>7) + 128 - (amplitude-128);
+
 
 
 reg gate;
 wire [1:0] wave_type;
+reg [1:0]  wave_signal;
+wire [7: 0]wave_choose;
+assign wave_choose = (wave_signal == 0) ? tri_wave : (wave_signal == 1) ? sqr_wave : sin_wave;
 // reg wave_in;
 top top (
     .clk(clk),
@@ -132,7 +172,7 @@ top top (
     .freq_word(freq_word),
     .amplitude(amplitude),
     .gate(gate),
-    .wave_in(wave_out),
+    .wave_in(wave_choose),
     .wave_type(wave_type)
 
 );
@@ -142,19 +182,32 @@ top top (
 
 // -----------------------------------------------------------
 // 仿真控制 & 波形 dump
+
+
 // -----------------------------------------------------------
 initial begin
     gate <= 0;
+    wave_signal <= 0;
+
     // wave_in <= wave_sqr;
 
     #1000;
     gate <= 1;
 
-    #10000
+    #10000;
     gate <= 0;
+    wave_signal <= 1;
 
     #1000;
     gate <= 1;
+
+    #10000;
+    gate <= 0;
+    wave_signal <= 2;
+
+    #1000;
+    gate <= 1;
+    #10000;
     $display("Simulation finished");
     $finish;
 end
