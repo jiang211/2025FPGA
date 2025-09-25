@@ -106,5 +106,38 @@ fft_demo_00  u_fft_wrapper (
 );
 
 
+//////////////// index_count///////////////////
+reg [10:0] index;
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n)
+        index <= 0;
+    else if (xk_axi4s_data_tvalid)
+        index <= (index == {10{1'b1}}) ? 0 : index + 1'b1;
+end
+
+// reg [31:0] max_val;
+// reg [KW-1:0] max_idx;
+
+// always @(posedge clk or negedge rst_n) begin
+//     if (!rst_n) begin
+//         max_val <= 0;
+//         max_idx <= 0;
+//         k1_o    <= 0;
+//         k1_valid <= 0;
+//     end else begin
+//         k1_valid <= 0;
+//         if (xk_axi4s_data_tvalid) begin
+//             if (mag_data > max_val) begin
+//                 max_val <= mag_data;
+//                 max_idx <= mag_index;
+//             end
+//         end
+//         if (frame_done) begin
+//             k1_o     <= max_idx;
+//             k1_valid <= 1;
+//             max_val  <= 0;   // 清零，准备下一帧
+//         end
+//     end
+// end
 
 endmodule

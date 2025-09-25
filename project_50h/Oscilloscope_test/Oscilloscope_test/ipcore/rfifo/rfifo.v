@@ -1,5 +1,3 @@
-// Created by IP Generator (Version 2022.1 build 99559)
-
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -34,7 +32,7 @@ module rfifo
     almost_full     ,  // output write almost full
     rd_empty        ,  // output read empty
     
-    almost_empty       // output write almost empty 
+    almost_empty       // output write almost empty
    );
 
 
@@ -136,7 +134,7 @@ assign rd_data        = ((DEVICE_NAME == "PGT30G") && (RD_DATA_WIDTH <= 9)) ? rd
 
 
 //ipml_sdpram IP instance
-ipml_fifo_v1_6_rfifo 
+ipml_fifo_v1_9_rfifo
     #(
     .c_SIM_DEVICE        (SIM_DEVICE            ),
     .c_WR_DEPTH_WIDTH    (WR_DEPTH_WIDTH        ),    // fifo depth width 9 -- 20   legal value:9~20

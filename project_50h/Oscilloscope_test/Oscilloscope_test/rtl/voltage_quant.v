@@ -1,16 +1,16 @@
 module voltage_quant(
     input wire clk,
     input wire rst,
-    input wire [13:0] data_in,
-    output wire [13:0] volt_out
+    input wire [11:0] data_in,
+    output wire [11:0] volt_out
 );
-
+wire [11:0] min,max;
 parameter   CNT_MAX_MIA    =   'd1000_000;
 parameter   CNT_MAX_FRE    =   'd5_000_000;
 parameter   CNT_MAX_RST    =   'd60_000_000;
 reg     [30:0]      cnt,cnt_rst,cnt_f;
 
-reg     [13:0]      rmin,rmax;
+reg     [11:0]      rmin,rmax;
 
 reg     [7:0]      fre_cnt_reg;
 // 计数器：
@@ -66,7 +66,7 @@ end
 assign min = (cnt == CNT_MAX_MIA - 1'b1)? rmin : min;
 assign max = (cnt == CNT_MAX_MIA - 1'b1)? rmax : max;
 
-assign volt_out = (max - 14'd4150) / 16;
+assign volt_out = (max - 12'd2050) >> 1;
 
 
 endmodule

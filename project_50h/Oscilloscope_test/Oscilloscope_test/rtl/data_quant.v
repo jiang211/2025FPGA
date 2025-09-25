@@ -1,12 +1,13 @@
 module data_quant(
     input  wire     [ 0:0]      clk    ,       
     input  wire     [ 0:0]      rst       ,    
-    input wire [9:0] data_in,
+    input wire [7:0] data_in,
     output wire [8:0] max,
     output wire [8:0] min,
     output wire [31:0] fre,
-    output wire [10:0] v,
-    output wire spike
+   //output wire [10:0] v,
+    output wire spike_replace_sum,
+    output wire spike_replace_x3
 );
 
 parameter   CNT_MAX_MIA    =   'd1000_000;
@@ -23,8 +24,10 @@ soft_clip_8 u_soft_clip_8(
     .rst_n                  (rst        ),
     .din                    (data_in[7:0]),
     .dout                   (data_quant),
-    .spike                  (spike)
+    .spike_replace_sum                  (spike_replace_sum),
+    .spike_replace_x3                  (spike_replace_x3)
 );
+
 // 计数器：
 always @ (posedge clk or negedge rst)begin
     if(rst == 1'b0)begin
@@ -77,20 +80,20 @@ end
 
 assign min = (cnt == CNT_MAX_MIA - 1'b1)? rmin : min;
 assign max = (cnt == CNT_MAX_MIA - 1'b1)? rmax : max;
-assign v = (max <= 'd150) ? 11'd50: 
-           (max <= 'd162) ? 11'd100:
-           (max <= 'd168) ? 11'd125: 
-           (max <= 'd174) ? 11'd150: 
-           (max <= 'd180) ? 11'd175:
-           (max <= 'd188) ? 11'd200: 
-           (max <= 'd194) ? 11'd225:
-           (max <= 'd200) ? 11'd250:
-           (max <= 'd206) ? 11'd275: 
-           (max <= 'd212) ? 11'd300:
-           (max <= 'd218) ? 11'd325:
-           (max <= 'd224) ? 11'd350:
-           (max <= 'd230) ? 11'd375: 
-           (max <= 'd238) ? 11'd400: 
-           (max <= 'd244) ? 11'd425:
-           (max <= 'd248) ? 11'd450: 11'd500;
+// assign v = (max <= 'd150) ? 11'd50: 
+//            (max <= 'd162) ? 11'd100:
+//            (max <= 'd168) ? 11'd125: 
+//            (max <= 'd174) ? 11'd150: 
+//            (max <= 'd180) ? 11'd175:
+//            (max <= 'd188) ? 11'd200: 
+//            (max <= 'd194) ? 11'd225:
+//            (max <= 'd200) ? 11'd250:
+//            (max <= 'd206) ? 11'd275: 
+//            (max <= 'd212) ? 11'd300:
+//            (max <= 'd218) ? 11'd325:
+//            (max <= 'd224) ? 11'd350:
+//            (max <= 'd230) ? 11'd375: 
+//            (max <= 'd238) ? 11'd400: 
+//            (max <= 'd244) ? 11'd425:
+//            (max <= 'd248) ? 11'd450: 11'd500;
 endmodule

@@ -10,6 +10,7 @@ module char_display # (
 	input                       i_de,	
 	input[31:0]                 fre1,	
 	input[31:0]                 fre2,	
+	input[1:0]                  choose,
 	input[15:0]                 i_data,  
 	output                      o_hs,    
 	output                      o_vs,    
@@ -130,6 +131,13 @@ assign ren24    = ((pos_x <= 92)) && (pos_x >= ('d52) && (pos_y >= V_ACT/2 + 10 
 wire [9:0] charhz1_y,charhz2_y;
 assign charhz1_y = (fre2 < 1000) ? char19_y : char19_y + 16;
 assign charhz2_y = (fre1 < 1000) ? char22_y : char22_y + 16;
+wire [9:0] char_chose_y;
+//wire [1:0] choose;
+assign char_chose_y = (choose == 2'b10) ? char17_y : //正弦
+					  (choose == 2'b00)	? char17_y + 'd48 :  //三角
+					  (choose == 2'b01)	? char17_y + 'd96 ://方波
+					  					char17_y;
+
 always@(posedge pclk)
 begin
 	if(ren1 == 1'b0)
@@ -266,7 +274,7 @@ assign char_y = (!ren1) ? char1_y        :
 				(!ren21) ? char21_y + 'd608 : //vpp
 				(!ren22) ? charhz2_y + 'd576 : //khz
 				(!ren24) ? char24_y + 'd608 : //vpp
-				(!ren17) ? char17_y + 'd624 : //tr
+				(!ren17) ? char_chose_y + 'd624 : //tr
 				10'd0;
 assign ren = (ren1 && ren2 && ren3 && ren4 && ren5 && ren6 && ren7 && ren8 && ren9 && ren10 && ren11 && ren12 && ren13 && ren14 && ren15 && ren16 && ren17 && ren18 && ren19 && ren20 && ren21 && ren22 && ren23 && ren24)? 1'b1 : 1'b0;
 
