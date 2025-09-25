@@ -32,27 +32,6 @@ reg                 valid;
 
 reg [31:0] freq_word ;  // 1 kHz @ 50 MHz
 reg [15:0] amplitude ;
-wire [7:0] wave_out;
-wire [7:0] wave_out_270;
-wire [7:0] wave_sqr;
-wire [7:0] wave_sqr_180;
-
-wire [DW -1 : 0 ] fifo_dout;
-// 下面�? data_tri 接到 DUT 的输入端口，请按实际改名
-
-// -----------------------------------------------------------
-// 实例�? DUT（请把名字和端口换成你自己的�?
-// -----------------------------------------------------------
-divirative u_dut (
-    .clk_50M        (clk),
-    .rst_n      (rst_n),
-
-    .valid      (valid),
-    .wave_data  (wave_out),
-    .fifo_dout  (fifo_dout),
-    .output_valid(output_valid)
-);
-
 // -----------------------------------------------------------
 // 时钟
 // -----------------------------------------------------------
@@ -74,51 +53,7 @@ initial begin
     valid = 1;
 end
 
-// -----------------------------------------------------------
-// 三角波发生器
-// -----------------------------------------------------------
-// triangle_dds  #(
-//     .CLK_FREQ(CLK_FREQ)
-// ) dut0 (
-//     .clk(clk),
-//     .rst_n(rst_n),
-//     .freq_word(freq_word),
-//     .amplitude(amplitude),
-//     .SAD_FREQ(SAD_FREQ),
 
-//     .wave_out(wave_out),
-//     .wave_out_270(wave_out_270)
-
-// );
-
-// sqr_wave_gen  #(
-//     .CLK_FREQ(CLK_FREQ)
-// ) dut1 (
-//     .clk(clk),
-//     .rst_n(rst_n),
-//     .freq_word(freq_word),
-//     .amplitude(amplitude),
-//     .cycle_num(CLK_FREQ/freq_word),
-//     .SAD_FREQ(SAD_FREQ),
-
-//     .sel_phase(0),
-//     .wave_out(wave_sqr)
-
-// );
-// sqr_wave_gen  #(
-//     .CLK_FREQ(CLK_FREQ)
-// ) dut2 (
-//     .clk(clk),
-//     .rst_n(rst_n),
-//     .freq_word(freq_word),
-//     .amplitude(amplitude),
-//     .cycle_num(CLK_FREQ/freq_word),
-//     .SAD_FREQ(SAD_FREQ),
-
-//     .sel_phase(1),
-//     .wave_out(wave_sqr_180)
-
-// );
 wire [8:0] addr ;
 easy_divider div0 (
     .rst_n    (rst_n),
@@ -188,18 +123,62 @@ duty_top duty0(
     .duty(duty)
 );
 
-// 组合逻辑：cnt 0~255 上升�?256~511 下降
-
-// -----------------------------------------------------------
-// 仿真控制 & 波形 dump
 
 
-// -----------------------------------------------------------
+
+
+
+// -----------------------------------------------------------相位测试
+
+wire [7:0] tri_wave1;
+wire [7:0] sqr_wave1;
+wire [7:0] sin_wave1;
+
+wire [7:0] tri_ini1;
+wire [7:0] sin_ini1;
+tri_lut tri_lut1(
+    .addr(addr-128),
+    .data(tri_ini1)
+);
+
+
+sqr_lut sqr_lut1(
+    .addr(addr-128),
+    .sel_signal(1),
+    .amplitude(amplitude),
+    .data(sqr_wave1)
+);
+
+sin_lut sin_lut1(
+    .addr(addr-128),
+    .data(sin_ini1)
+);
+
+assign tri_wave1 = ((tri_ini1 * (amplitude-128)) >>7) + 128 - (amplitude-128);
+assign sin_wave1 = ((sin_ini1 * (amplitude-128)) >>7) + 128 - (amplitude-128);
+
+
+
+wire [7: 0]wave_choose1;
+assign wave_choose1 = (wave_signal == 0) ? tri_wave1 : (wave_signal == 1) ? sqr_wave1 : sin_wave1;
+
+wire [7:0]phase_diff;
+phase_top phase0(
+    .clk(clk),
+    .rst_n(gate),
+
+    .wave_a(wave_choose),
+    .wave_b(wave_choose1),
+    .amplitude(amplitude),
+    .phase(phase_diff)
+);
+
+
+
 initial begin
     gate <= 0;
     wave_signal <= 0;
 
-    // wave_in <= wave_sqr;
 
     #1000;
     gate <= 1;
