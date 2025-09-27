@@ -1,5 +1,3 @@
-// Created by IP Generator (Version 2022.1 build 99559)
-
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -35,17 +33,17 @@ module fft_modulus_fifo
     
     rd_water_level  ,  // output read water level
     
-    almost_empty       // output write almost empty 
+    almost_empty       // output write almost empty
    );
 
 
-localparam WR_DEPTH_WIDTH = 10 ; // @IPC int 9,20
+localparam WR_DEPTH_WIDTH = 13 ; // @IPC int 9,20
 
-localparam WR_DATA_WIDTH = 63 ; // @IPC int 1,1152
+localparam WR_DATA_WIDTH = 73 ; // @IPC int 1,1152
 
-localparam RD_DEPTH_WIDTH = 10 ; // @IPC int 9,20
+localparam RD_DEPTH_WIDTH = 13 ; // @IPC int 9,20
 
-localparam RD_DATA_WIDTH = 63 ; // @IPC int 1,1152
+localparam RD_DATA_WIDTH = 73 ; // @IPC int 1,1152
 
 localparam OUTPUT_REG = 0 ; // @IPC bool
 
@@ -138,7 +136,7 @@ assign rd_data        = ((DEVICE_NAME == "PGT30G") && (RD_DATA_WIDTH <= 9)) ? rd
 
 
 //ipml_sdpram IP instance
-ipml_fifo_v1_6_fft_modulus_fifo 
+ipml_fifo_v1_9_fft_modulus_fifo
     #(
     .c_SIM_DEVICE        (SIM_DEVICE            ),
     .c_WR_DEPTH_WIDTH    (WR_DEPTH_WIDTH        ),    // fifo depth width 9 -- 20   legal value:9~20

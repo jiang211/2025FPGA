@@ -12,7 +12,20 @@ module fft_top #(
     input                      wd_en                          ,   //fft ip写使能
     input  [DATAIN_WIDTH-1:0]  wd_data                        ,   //写信号数据
     output                     rd_en                          ,   //读使能
-    output [DATAOUT_WIDTH-1:0] fft_amplitude_frequency_data       //输出幅频数据
+    output [DATAOUT_WIDTH-1:0] fft_amplitude_frequency_data   ,   //输出幅频数据
+    output                     [10:0] index,
+    output                        sqrt_busy,
+    input              [10:0] fre,
+    output    [31:0]         thd_q16_16,
+    output                   thd_valid,
+    output    [31:0]            h1,
+    output    [31:0]            h2,
+    output    [31:0]            h3,
+    output    [31:0]            h4,
+    output    [31:0]            h5,
+    output    [10:0]            index1,
+    output [15:0]           div_out,
+    output [63:0]           sqrt_out
 
    );
 
@@ -83,6 +96,8 @@ fft_data_modulus u_fft_data_modulus(
     //取模运算后的数据接口        
     .data_modulus           (fft_amplitude_frequency_data ),  
     .data_modulus_valid     (rd_en                        ),
+    .data_index             (index                        ),
+    .sqrt_busy              (sqrt_busy),
     //用户接口
     .data_input_start_flag  (data_input_start_flag        )
    );
@@ -105,15 +120,48 @@ fft_demo_00  u_fft_wrapper (
     .o_stat                 (stat                )
 );
 
+ wire [63:0] h1,h2,h3,h4,h5;
+   thd_data_fine u_thd_data_fine(
+        .clk            (clk),
+        .rst            (rst_n),
+        .fre            (fre),
+        .sqrt_busy      (sqrt_busy),
+        .data_in        (fft_amplitude_frequency_data),
+        .index          (index),
+        .h1             (h1),
+        .h2             (h2),
+        .h3             (h3),
+        .h4             (h4),
+        .h5             (h5),
+        .index1         (index1)
+);
+wire flag_start = (index == 'd500);
+   thd_calculator u_thd_calculator(
+        .clk            (clk),
+        .rst_n          (rst_n),
+        .mag_valid      (flag_start),
+        .mag_index      (index),
+        .h1             (h1),
+        .h2             (h2),
+        .h3             (h3),
+        .h4             (h4),
+        .h5             (h5),
+       
+        .thd_q16_16     (thd_q16_16),
+        .thd_valid      (thd_valid),
+        .div_out        (div_out),
+        .sqrt_out       (sqrt_out)
+
+    );
 
 //////////////// index_count///////////////////
-reg [10:0] index;
-always @(posedge clk or negedge rst_n) begin
-    if (!rst_n)
-        index <= 0;
-    else if (xk_axi4s_data_tvalid)
-        index <= (index == {10{1'b1}}) ? 0 : index + 1'b1;
-end
+// reg [10:0] index;
+// always @(posedge clk or negedge rst_n) begin
+//     if (!rst_n)
+//         index <= 0;
+//     else if (xk_axi4s_data_tvalid)
+//         index <= (index == {10{1'b1}}) ? 0 : index + 1'b1;
+// end
 
 // reg [31:0] max_val;
 // reg [KW-1:0] max_idx;

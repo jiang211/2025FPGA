@@ -1,5 +1,3 @@
-// Created by IP Generator (Version 2022.1 build 99559)
-
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -21,13 +19,13 @@ module  fft_modulus_fifo_tb;
 localparam T_CLK_PERIOD       = 10 ;       //clock a half perid
 localparam T_RST_TIME         = 200 ;       //reset time 
 
-localparam WR_DEPTH_WIDTH = 10 ; // @IPC int 9,20
+localparam WR_DEPTH_WIDTH = 13 ; // @IPC int 9,20
 
-localparam WR_DATA_WIDTH = 63 ; // @IPC int 1,1152
+localparam WR_DATA_WIDTH = 73 ; // @IPC int 1,1152
 
-localparam RD_DEPTH_WIDTH = 10 ; // @IPC int 9,20
+localparam RD_DEPTH_WIDTH = 13 ; // @IPC int 9,20
 
-localparam RD_DATA_WIDTH = 63 ; // @IPC int 1,1152
+localparam RD_DATA_WIDTH = 73 ; // @IPC int 1,1152
 
 localparam OUTPUT_REG = 0 ; // @IPC bool
 
