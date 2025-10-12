@@ -83,7 +83,7 @@ always @(posedge clk)begin
                         totol_percnt <= totol_percnt - totol_cnt;
                         duty_mid <= duty_mid + 1;
                     end else begin
-                        duty <= duty_mid;
+                        duty <= 'd100 - duty_mid;
                     end
                 end
             end

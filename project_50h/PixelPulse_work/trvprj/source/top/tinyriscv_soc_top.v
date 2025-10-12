@@ -191,7 +191,7 @@ output [11:0] test1
         .inu3_clk                                   (    inus_clk       ),
         .inu3_rstn                                  (    !rst_n     ),
         .wfifo3_wr_en                               (    1'b1          ),   
-        .wfifo3_wr_data                             (    {data_a,data_a}         ),   
+        .wfifo3_wr_data                             (    {data_b,data_a}         ),   
         .wfifo3_wr_full                             (                   ),//�����źţ����Բ���
         .wfifo3_almost_full                         (                   ),
         .almost_empty3                              (                   ),     

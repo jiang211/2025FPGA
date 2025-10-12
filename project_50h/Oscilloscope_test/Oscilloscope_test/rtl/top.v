@@ -266,9 +266,9 @@ wire                          rd_en1                       ;
 wire                          data_req1                    ;
 wire                          fft_point_done1              ;
 wire                          data_input_start_flag1       ;
-wire  [7:0]                   fft_point_cnt1               ;
+wire  [11:0]                   fft_point_cnt1               ;
 wire                          fifo_rd_empty1               ;
-wire  [10:0]                  fifo_wr_cnt1                 ;
+wire  [11:0]                  fifo_wr_cnt1                 ;
 wire                          fifo_rd_req1                 ;
 wire                          fifo_pre_rd_req1             ;
 wire                          fifo_wr_req1                 ;
@@ -378,19 +378,47 @@ wire clk_20M,clk_40M,clk_60M,clk_80M,clk_100M;
         .spike_replace_sum (spike_replace_sum),
         .spike_replace_x3   (spike_replace_x3)
     );
-
-    voltage_quant u_voltage_quant1(
-        .clk                 (sys_clk),
-        .rst                 (locked),
-        .data_in             (ad_data),
-        .volt_out            (v2)
+/////////// 1 有点问题，需要调试
+    voltage_quant#(
+        .V1 ('d2215),
+        .V2 ('d2292),
+        .V3 ('d2370),
+        .V4 ('d2477),
+        .V5 ('d2580),
+        .V6 ('d2680),
+        .V7 ('d2792),
+        .V8 ('d2909),
+        .V9 ('d3008),
+        .V10('d3108),
+        .VMAX    (12'd3060     ),                           
+        .VMIN    (12'd1024    ),
+        .VMID    (12'd2083    )                     
+    ) u_voltage_quant_1 (
+        .clk            (sys_clk),       
+        .rst            (locked),    
+        .data_in        (ad_data2),   
+        .volt_out       (v1)
     );
 
-    voltage_quant u_voltage_quant2(
-        .clk                 (sys_clk),
-        .rst                 (locked),
-        .data_in             (ad_data2),
-        .volt_out            (v1)
+    voltage_quant#(
+        .V1 ('d2160),
+        .V2 ('d2291),
+        .V3 ('d2377),
+        .V4 ('d2477),
+        .V5 ('d2574),
+        .V6 ('d2670),
+        .V7 ('d2789),
+        .V8 ('d2890),
+        .V9 ('d2990),
+        .V10('d3092),
+        .VMAX    (12'd3060     ),                           
+        .VMIN    (12'd1024    ),
+        .VMID    (12'd2055    )                    
+    ) u_voltage_quant_2 (
+        .clk            (sys_clk),       
+        .rst            (locked),    
+        .data_in        (ad_data),   
+        .volt_out       (v2)
     );
 
 
@@ -418,6 +446,17 @@ wire clk_20M,clk_40M,clk_60M,clk_80M,clk_100M;
     .dout                   (data_match)
    // .spike                  (spike1)
 );
+    wire [10:0] phase1;
+    phase_top u_phase_top(
+    .clk                 (sys_clk),
+    .rst_n               (gate_n2),
+
+    .wave_a              (ad_data2[11:4]),
+    .wave_b              (data_match),  
+    .amplitude           (max2),
+    .phase               (phase1)   
+);
+
     wire [1:0] choose;
     assign led = choose;
     ai_match_top u_ai_match_top(
@@ -431,6 +470,16 @@ wire clk_20M,clk_40M,clk_60M,clk_80M,clk_100M;
         .wave_in        (data_match),
         .wave_type      (choose)
     );
+    wire [10:0] duty;
+    duty_top u_duty_top(
+        .clk                (sys_clk),
+        .rst_n              (gate_n2),
+
+        .wave_in            (data_match),
+        .amplitude          (max2),
+        .duty               (duty)
+    );
+
     wire [7:0] cz_data;
     
     assign filt_in1 = sin_addata2 - 'd128;//ad_data - 'd128;
@@ -462,6 +511,7 @@ wire clk_20M,clk_40M,clk_60M,clk_80M,clk_100M;
 wire [7:0] f_dt;
 assign f_dt = (td2 == 1) ? ad_data2[11:4] : ad_data[11:4]; 
     assign fft_data_in = {7'b0,f_dt};
+wire [15:0] div_out;
     fft_top #(
         .DATAIN_WIDTH    (DATAIN_WIDTH     ),                           
         .DATAOUT_WIDTH   (DATAOUT_WIDTH    ),                           
@@ -475,7 +525,20 @@ assign f_dt = (td2 == 1) ? ad_data2[11:4] : ad_data[11:4];
         .wd_data                        (fft_data_in                     ),   //写信号数据
         .rd_en                          (rd_en1                       ),   //读使能
         .data_input_start_flag          (data_input_start_flag1       ),   //fft_modulus_fifo存储数据需求标志
-        .fft_amplitude_frequency_data   (fft_amplitude_frequency_data1)    //输出幅频数据
+        .fft_amplitude_frequency_data   (fft_amplitude_frequency_data1) ,   //输出幅频数据
+        .index                         (index),
+        .sqrt_busy                       (sqrt_busy),
+        .thd_q16_16                      (thd_q16_16),
+        .thd_valid                       (thd_valid),
+        .fre                            (fre2),
+        .h1                              (h1    ),
+        .h2                              (h2    ),
+        .h3                              (h3    ),
+        .h4                              (h4    ),
+        .h5                              (h5    ),
+        .index1                           (index1),
+        .div_out        (div_out),
+        .sqrt_out       (sqrt_out)
    );
 
 
@@ -599,7 +662,7 @@ wire [15:0] rgb_data_c;
         .sys_clk       (sys_clk      ) ,
         .wave_color    (15'h0000) ,// wave color                              ) ,// wave color FFD700    
         .max          (   max1       ),      
-        .min          (   min1         ),
+        .min          (   phase1  - 'd18       ),
         .fre          (   fre1         ),     
         .v            (   v1          ),                                                     
         .i_hs          (hs_out_c  ) ,                        
@@ -623,8 +686,8 @@ wire [15:0] rgb_data_d2;
         .pclk          (pix_clk      ) ,
         .sys_clk       (sys_clk      ) ,
         .wave_color    (24'hffd700) ,// wave color FFD700    
-        .max          (   max2       ),      
-        .min          (   min2         ),
+        .max          (   div_out       ),      
+        .min          (   duty         ),
         .fre          (   fre2         ),
         .v            (   v2          ),                                                     
         .i_hs          (hs_out_d1  ) ,                        

@@ -1,5 +1,3 @@
-// Created by IP Generator (Version 2022.1 build 99559)
-
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -30,13 +28,13 @@ module fft_modulus_fifo_prefetch
    );
 
 
-localparam WR_DEPTH_WIDTH = 10 ; // @IPC int 9,20
+localparam WR_DEPTH_WIDTH = 13 ; // @IPC int 9,20
 
-localparam WR_DATA_WIDTH = 63 ; // @IPC int 1,1152
+localparam WR_DATA_WIDTH = 73 ; // @IPC int 1,1152
 
-localparam RD_DEPTH_WIDTH = 10 ; // @IPC int 9,20
+localparam RD_DEPTH_WIDTH = 13 ; // @IPC int 9,20
 
-localparam RD_DATA_WIDTH = 63 ; // @IPC int 1,1152
+localparam RD_DATA_WIDTH = 73 ; // @IPC int 1,1152
 
 localparam RESET_TYPE = "ASYNC" ; // @IPC enum Sync_Internally,SYNC,ASYNC
 
@@ -81,11 +79,13 @@ wire [RD_DATA_WIDTH_WRAP-1 : 0]               rd_data_wrap;
 
 assign wr_data_wrap   = ((DEVICE_NAME == "PGT30G") && (WR_DATA_WIDTH <= 9)) ? {{(WR_DATA_WIDTH_WRAP - WR_DATA_WIDTH){1'b0}},wr_data} : wr_data;
 assign rd_data        = ((DEVICE_NAME == "PGT30G") && (RD_DATA_WIDTH <= 9)) ? rd_data_wrap[RD_DATA_WIDTH-1 : 0] : rd_data_wrap;
+localparam  SIM_DEVICE         = ((DEVICE_NAME == "PGL22G") || (DEVICE_NAME == "PGL22GS")) ? "PGL22G" : "LOGOS";
 
 
 //ipml_prefetch_fifo IP instance
-ipml_prefetch_fifo_v1_6_fft_modulus_fifo 
+ipml_prefetch_fifo_v1_9_fft_modulus_fifo
     #(
+    .c_SIM_DEVICE        (SIM_DEVICE            ),
     .c_WR_DEPTH_WIDTH    (WR_DEPTH_WIDTH        ),    // fifo depth width 9 -- 20   legal value:9~20
     .c_WR_DATA_WIDTH     (WR_DATA_WIDTH_WRAP    ),    // write data width 1 -- 1152 1)WR_BYTE_EN =0 legal value:1~1152  2)WR_BYTE_EN=1  legal value:2^N or 9*2^N
     .c_RD_DEPTH_WIDTH    (RD_DEPTH_WIDTH        ),    // read address width 9 -- 20 legal value:1~20
