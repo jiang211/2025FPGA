@@ -137,20 +137,20 @@ wire [7:0] sin_wave1;
 wire [7:0] tri_ini1;
 wire [7:0] sin_ini1;
 tri_lut tri_lut1(
-    .addr(addr-128),
+    .addr(addr+64),
     .data(tri_ini1)
 );
 
 
 sqr_lut sqr_lut1(
-    .addr(addr-128),
+    .addr(addr-384),
     .sel_signal(1),
     .amplitude(amplitude),
     .data(sqr_wave1)
 );
 
 sin_lut sin_lut1(
-    .addr(addr-128),
+    .addr(addr-256),
     .data(sin_ini1)
 );
 
