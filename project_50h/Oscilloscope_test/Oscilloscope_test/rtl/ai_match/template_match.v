@@ -21,7 +21,7 @@ module template_match #(
     input [7:0] dsin_template,
     input [7:0] wave_in,
     input [7:0] dwave_in,
-    output reg [1:0] wave_type
+    output[1:0] wave_type
 );
     
 reg  [9:0] tri_template_cnt0;        //模板1匹配
@@ -93,6 +93,7 @@ wire [10:0] tri_template_cnt_total = tri_template_cnt0 + tri_template_cnt1;
 wire [10:0] sqr_template_cnt_total = sqr_template_cnt0 + sqr_template_cnt1;
 wire [10:0] sin_template_cnt_total = sin_template_cnt0 +sin_template_cnt1;
 
+reg [2:0] wave_type_fifo [0:1];
 always @(posedge clk )begin
     if(!rst_n)begin
         wave_type <= TRI_WAVE;
@@ -100,16 +101,21 @@ always @(posedge clk )begin
     else begin
         if(wave_valid)begin
         if(tri_template_cnt_total >= sqr_template_cnt_total && tri_template_cnt_total >= sin_template_cnt_total)begin
-            wave_type <= TRI_WAVE;
+            wave_type_fifo[0] <= TRI_WAVE;
+            if(wave_type_fifo[0] == TRI_WAVE) wave_type_fifo[1] <= TRI_WAVE;
         end 
         else if (sqr_template_cnt_total >= tri_template_cnt_total && sqr_template_cnt_total >= sin_template_cnt_total)begin
-            wave_type <= SQR_WAVE;
+            wave_type_fifo[0] <= SQR_WAVE;
+            if(wave_type_fifo[0] == SQR_WAVE) wave_type_fifo[1] <= SQR_WAVE;
         end
         else if(sin_template_cnt_total >= tri_template_cnt_total && sin_template_cnt_total >= tri_template_cnt_total)begin
-            wave_type <= SIN_WAVE;
+            wave_type_fifo[0] <= SIN_WAVE;
+            if(wave_type_fifo[0] == SIN_WAVE) wave_type_fifo[1] <= SIN_WAVE;
         end
         end
     end
 end
+
+assign wave_type = wave_type_fifo[1];
 
 endmodule

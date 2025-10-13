@@ -4,7 +4,7 @@ module duty_top (
 
     input [7 : 0] wave_in,
     input [7 : 0] amplitude,
-    output reg [7 : 0] duty
+    output[7 : 0] duty
 );
     
 
@@ -23,6 +23,9 @@ reg [9 : 0] higt_cnt;
 reg [9 : 0] totol_cnt;
 reg [15 : 0] totol_percnt;
 reg [7:0] duty_mid;
+
+reg [7:0] duty_fifo [0:1];
+reg update;
 always @(posedge clk)begin
     if(!rst_n)begin
         state <= START;
@@ -30,6 +33,8 @@ always @(posedge clk)begin
         higt_cnt <= 0;
         duty_mid <= 0;
         totol_percnt <= 0;
+
+        update <= 0;
     end
     else begin
         case (state)
@@ -83,15 +88,18 @@ always @(posedge clk)begin
                         totol_percnt <= totol_percnt - totol_cnt;
                         duty_mid <= duty_mid + 1;
                     end else begin
-                        duty <= 'd100 - duty_mid;
+                        if(~update)begin
+                            duty_fifo[0]  <= 'd100 - duty_mid;
+                            if(duty_fifo[0]=='d100 - duty_mid)duty_fifo[1] <= 'd100 - duty_mid;
+                            update <= 1;
+                        end
                     end
                 end
             end
 
-            default: duty <= 0;
         endcase
     end
 end
 
-
+assign duty = duty_fifo[1];
 endmodule

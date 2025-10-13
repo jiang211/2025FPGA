@@ -47,7 +47,7 @@ initial begin
     valid = 0;
     rst_n = 0;
     freq_word = 32'd1000000;
-    amplitude = 16'd159;
+    amplitude = 16'd217;
     repeat(10) @(posedge clk);
     rst_n = 1;
     valid = 1;
@@ -143,7 +143,7 @@ tri_lut tri_lut1(
 
 
 sqr_lut sqr_lut1(
-    .addr(addr-384),
+    .addr(addr-256),
     .sel_signal(1),
     .amplitude(amplitude),
     .data(sqr_wave1)
