@@ -116,6 +116,9 @@ module pattern_vg # (
             else if(act_x >= 77 && act_x <=79 && act_y >= (V_ACT/3 + V_ACT/3 + 65) && act_y <= (V_ACT/3 + V_ACT/3 + 68)) begin
                 rgb_data <= 16'h0000;
             end
+            else if(act_x >= (H_ACT/5 + H_ACT/5 + H_ACT/10 - 1) && act_x <=(H_ACT/5 + H_ACT/5 + H_ACT/10 + 1) && act_y >= (V_ACT - V_ACT/6)) begin
+                rgb_data <= 16'h0000;
+            end
             else if(act_x >= 77 + 819 && act_x <=79 + 819 && act_y >= (V_ACT/3 + V_ACT/3 + 65) && act_y <= (V_ACT/3 + V_ACT/3 + 68)) begin
                 rgb_data <= 24'hffd700;
             end

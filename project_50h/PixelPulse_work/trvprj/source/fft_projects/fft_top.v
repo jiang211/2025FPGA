@@ -146,11 +146,11 @@ wire flag_start = (index == 'd500);
         .h3             (h3),
         .h4             (h4),
         .h5             (h5),
-
+       
         .thd_q16_16     (thd_q16_16),
         .thd_valid      (thd_valid),
         .div_out        (div_out),
-        .sum_sq          (sqrt_out)
+        .sqrt_out       (sqrt_out)
 
     );
 
