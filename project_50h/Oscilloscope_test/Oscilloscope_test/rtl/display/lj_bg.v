@@ -152,7 +152,7 @@ assign char_num_fre_x = ((act_x >= (H_ACT - H_ACT/5 + 'd30)) && (act_x <= (H_ACT
 assign char_num_fre_y = ((act_x >= (H_ACT - H_ACT/5 + 'd30)) && (act_x <= (H_ACT - 'd103)) && (act_y >= V_ACT/3 + V_ACT/2 + 28) && (act_y <= V_ACT - 28 ))? act_y - V_ACT/3 - V_ACT/2 - 28: 10'd0;
 assign ren_num_fre    = ((act_x >= (H_ACT - H_ACT/5 + 'd30)) && (act_x <= (H_ACT - 'd103)) && (act_y >= V_ACT/3 + V_ACT/2 + 28) && (act_y <= V_ACT - 28 ))? 1'b0 : 1'b1;
 
-assign char_vpp_x = ((act_x >= ('d55)) && (act_x <= (H_ACT/5 - 'd55)) && (act_y >= V_ACT/3 + V_ACT/2 + 28) && (act_y <= V_ACT - 28 ))? act_x - H_ACT/5 - 55: 10'd0;
+assign char_vpp_x = ((act_x >= ('d55)) && (act_x <= (H_ACT/5 - 'd55)) && (act_y >= V_ACT/3 + V_ACT/2 + 28) && (act_y <= V_ACT - 28 ))? act_x - 55: 10'd0;
 assign char_vpp_y = ((act_x >= ('d55)) && (act_x <= (H_ACT/5 - 'd55)) && (act_y >= V_ACT/3 + V_ACT/2 + 28) && (act_y <= V_ACT - 28 ))? act_y - V_ACT/3 - V_ACT/2 - 28: 10'd0;
 assign ren_vpp    = ((act_x >= ('d55)) && (act_x <= (H_ACT/5 - 'd55)) && (act_y >= V_ACT/3 + V_ACT/2 + 28) && (act_y <= V_ACT - 28 ))? 1'b0 : 1'b1;
 

@@ -296,7 +296,7 @@ wire [4:0] p_y;
 wire zon;
 wire cz;
 
-wire [10:0] targe_fre,targe_vpp;
+wire [10:0] targe_fre,targe_vpp,targe_wr_vpp;
 //assign led = data[7:0];
 touch_data_hd  u_touch_hd(
     .clk                (sys_clk),
@@ -309,6 +309,7 @@ touch_data_hd  u_touch_hd(
     .xh_control         (xh_control),
     .targe_fre          (targe_fre),
     .targe_vpp          (targe_vpp),
+    .targe_wr_vpp       (targe_wr_vpp),
     .fft_                (fft),
     .stop_               (stop),
     .td1_                (td1),
@@ -446,19 +447,26 @@ wire clk_20M,clk_40M,clk_60M,clk_80M,clk_100M;
     .dout                   (data_match)
    // .spike                  (spike1)
 );
+    soft_clip_8 u_soft_clip_8_2(
+    .clk                    (sys_clk           ),
+    .rst_n                  (locked        ),
+    .din                    (ad_data2[11:4]),
+    .dout                   (data_match2)
+   // .spike                  (spike1)
+);
     wire [10:0] phase1;
     phase_top u_phase_top(
     .clk                 (sys_clk),
     .rst_n               (gate_n2),
 
-    .wave_a              (ad_data2[11:4]),
+    .wave_a              (data_match2),
     .wave_b              (data_match),  
     .amplitude           (max2),
     .phase               (phase1)   
 );
 
-    wire [1:0] choose;
-    assign led = choose;
+    wire [1:0] choose1,choose2;
+    assign led = choose1;
     ai_match_top u_ai_match_top(
         .clk            (sys_clk  ),
         .rst_n          (locked   ),
@@ -468,7 +476,19 @@ wire clk_20M,clk_40M,clk_60M,clk_80M,clk_100M;
   
 
         .wave_in        (data_match),
-        .wave_type      (choose)
+        .wave_type      (choose1)
+    );
+
+    ai_match_top u_ai_match_top2(
+        .clk            (sys_clk  ),
+        .rst_n          (locked   ),
+        .gate           (gate_n1  ),
+        .freq_word      (fre1 * 1000),
+        .amplitude      (max1),  // 峰值（正数）
+  
+
+        .wave_in        (data_match2),
+        .wave_type      (choose2)
     );
     wire [10:0] duty;
     duty_top u_duty_top(
@@ -541,7 +561,7 @@ wire [15:0] div_out;
         .sqrt_out       (sqrt_out)
    );
 
-
+    
 
     fft_hdmi_rw_fifo_ctrl u_fft_hdmi_rw_fifo_ctrl1(
         .wd_clk                (sys_clk                      ),
@@ -643,7 +663,9 @@ wire [15:0] div_out;
         .i_de          (de_out_bg  ) ,    
         .fre1          (fre1          ) ,                                                     
         .fre2          (fre2          ) ,   
-        .choose        (choose        ),                                                  
+        .choose1        (choose1        ),  
+        .choose2        (choose2        ),  
+        .phase        (phase1        ),                                                  
         .i_data        (rgb_data_pa ) ,                          
         .o_hs          (hs_out_c        ) ,                        
         .o_vs          (vs_out_c        ) ,                        
@@ -686,8 +708,8 @@ wire [15:0] rgb_data_d2;
         .pclk          (pix_clk      ) ,
         .sys_clk       (sys_clk      ) ,
         .wave_color    (24'hffd700) ,// wave color FFD700    
-        .max          (   div_out       ),      
-        .min          (   duty         ),
+        .max          (   duty       ),      
+        .min          (   div_out         ),
         .fre          (   fre2         ),
         .v            (   v2          ),                                                     
         .i_hs          (hs_out_d1  ) ,                        
@@ -796,26 +818,27 @@ wire [15:0] rgb_data_lj;
         .rgb_data                           (rgb_data_main)
     );
 
-    // xh_bg # (
-    //     .COCLOR_DEPP(  8                    ), // number of bits per channel
-    //     .X_BITS    (  X_WIDTH              ),  
-    //     .Y_BITS    (  Y_WIDTH              ),  
-    //     .H_ACT     (  H_ACT                ),
-    //     .V_ACT      (  V_ACT                )  
-    // )
-    // u_bg(                                       
-    //     .rstn                               (locked), 
-    //     .pix_clk                            (pix_clk),
-    //     .act_x                              (act_x),
-    //     .act_y                              (act_y),
-    //     .vs_in                              (vs), 
-    //     .hs_in                              (hs), 
-    //     .de_in                              (de),
-    //     .vs_out                             (vs_out_xh), 
-    //     .hs_out                             (hs_out_xh), 
-    //     .de_out                             (de_out_xh),
-    //     .rgb_data                           (rgb_data_xh)
-    // );
+    xh_bg # (
+        .COCLOR_DEPP(  8                    ), // number of bits per channel
+        .X_BITS    (  X_WIDTH              ),  
+        .Y_BITS    (  Y_WIDTH              ),  
+        .H_ACT     (  H_ACT                ),
+        .V_ACT      (  V_ACT                )  
+    )
+    u_bg(                                       
+        .rstn                               (locked), 
+        .pix_clk                            (pix_clk),
+        .act_x                              (act_x),
+        .act_y                              (act_y),
+        .vs_in                              (vs), 
+        .hs_in                              (hs), 
+        .de_in                              (de),
+        .targe_vpp                       (targe_wr_vpp),
+        .vs_out                             (vs_out_xh), 
+        .hs_out                             (hs_out_xh), 
+        .de_out                             (de_out_xh),
+        .rgb_data                           (rgb_data_xh)
+    );
 
     lj_bg # (
         .COCLOR_DEPP(  8                    ), // number of bits per channel
@@ -840,13 +863,13 @@ wire [15:0] rgb_data_lj;
         .de_out                             (de_out_lj),
         .rgb_data                           (rgb_data_lj)
     );
-    assign rgb_data = //(Interface_control == 3'b1)? rgb_data_xh   : 
+    assign rgb_data = (Interface_control == 3'b1)? rgb_data_xh   : 
                       (Interface_control == 3'd2)? rgb_data_sbq  :
                       (Interface_control == 3'd3)? rgb_data_lj :
                       (Interface_control == 3'd4)? rgb_out_f :
                       (Interface_control == 3'd0)? rgb_data_main :
                                                    rgb_data_main ;
-    assign {vs_out, hs_out, de_out} = //(Interface_control == 3'b1) ? {vs_out_xh, hs_out_xh, de_out_xh}       : 
+    assign {vs_out, hs_out, de_out} = (Interface_control == 3'b1) ? {vs_out_xh, hs_out_xh, de_out_xh}       : 
                                       (Interface_control == 3'd2) ? {vs_out_w, hs_out_w, de_out_w}       :
                                       (Interface_control == 3'd3) ? {vs_out_lj, hs_out_lj, de_out_lj}       :
                                       (Interface_control == 3'd4)? {vs_out_fft, hs_out_fft, de_out_fft} :

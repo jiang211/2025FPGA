@@ -22,29 +22,11 @@ module tinyriscv_soc_top(
     input wire clk,
     input wire rst,
 
-    output wire halted_ind,  // jtag是否已经halt住CPU信号
+ 
 
     output wire uart_tx_pin, // UART发送引脚
     input wire uart_rx_pin,  // UART接收引脚
 
-    inout wire[15:0] gpio,    // GPIO引脚
-
-    input wire jtag_TCK,     // JTAG TCK引脚
-    input wire jtag_TMS,     // JTAG TMS引脚
-    input wire jtag_TDI,     // JTAG TDI引脚
-    output wire jtag_TDO,     // JTAG TDO引脚
-    
-    // HDMI
-    output wire iic_tx_scl    ,
-    inout  wire iic_tx_sda    ,
-    output wire vs_out,
-    output wire hs_out,
-    output wire de_out,
-    output wire[7:0]r_out,
-    output wire[7:0]g_out,
-    output wire[7:0]b_out,
-    output wire rstn_out,
-    output wire pix_clk,
 input    wire  [11:0]ad_data_in   ,
 input    wire  [11:0]ad_data_in_b   ,
 
@@ -95,7 +77,7 @@ output [11:0] test1
 
     );
 
-   
+    parameter      BPS_NUM = 'd434;
     // jtag
     wire jtag_halt_req_o;
     wire jtag_reset_req_o;
@@ -126,6 +108,27 @@ output [11:0] test1
         .clkout1  (  cfg_clk    ),//10MHz
         .pll_lock (  locked     )
     );
+    wire           rx_finish;       //receiver is free.
+    wire    [23:0]  rx_data;  
+    wire           rx_en;
+    uart_rx #(
+         .BPS_NUM            (  BPS_NUM       ) //parameter          BPS_NUM  =    16'd434
+     )
+     u_uart_rx (                        
+        .clk                 (  clk           ),// input             clk,                              
+        .uart_rx             (  uart_rx_pin       ),// input             uart_rx,            
+        .rx_data             (  rx_data       ),// output reg [7:0]  rx_data,                                   
+        .rx_en               (  rx_en         ),// output reg        rx_en,                          
+        .rx_finish           (  rx_finish     ) // output            rx_finish           
+    );                                            
+           
+    fre_quant u_fre_quant2(
+        .clk(sys_clk),
+        .rst(locked),
+        .data_in(ad_data_in_b[11:4]),
+        .gate_n (gate_n2),
+        .fre(fre2)
+    );
 
     // 复位控制模块例化
     rst_ctrl u_rst_ctrl(
@@ -140,8 +143,50 @@ output [11:0] test1
     // 低电平表示已经halt住CPU
     assign halted_ind = ~jtag_halt_req_o;
 
-   
-    
+    reg [20:0] fft_req_cnt;
+    always @(posedge sys_clk) begin
+        if(!rst) begin
+            fft_req_cnt <= 0;
+        end
+        else begin
+            fft_req_cnt <= fft_req_cnt + 1;
+        end
+    end
+    wire data_input_start_flag1 = (fft_req_cnt == 20'd100000);
+    parameter integer DATAIN_WIDTH    = 16   ;
+    parameter integer DATAOUT_WIDTH   = 32   ;
+    parameter integer USER_WIDTH      = 16   ;
+    assign fft_data_in = {8'b0,data_b[11:4]};
+    wire [15:0] div_out;
+    fft_top #(
+        .DATAIN_WIDTH    (DATAIN_WIDTH     ),                           
+        .DATAOUT_WIDTH   (DATAOUT_WIDTH    ),                           
+        .USER_WIDTH      (USER_WIDTH       )                        
+        )
+        u_fft_top1
+        (
+        .clk                            (sys_clk                      ),   
+        .rst_n                          (locked                        ),    
+        .wd_en                          (1'b1                         ),   //fft ip写使能
+        .wd_data                        (fft_data_in                     ),   //写信号数据
+        .rd_en                          (rd_en1                       ),   //读使能
+        .data_input_start_flag          (data_input_start_flag1       ),   //fft_modulus_fifo存储数据需求标志
+        .fft_amplitude_frequency_data   (fft_amplitude_frequency_data1) ,   //输出幅频数据
+        .index                         (index),
+        .sqrt_busy                       (sqrt_busy),
+        .thd_q16_16                      (thd_q16_16),
+        .thd_valid                       (thd_valid),
+        .fre                            (fre2),
+        .h1                              (h1    ),
+        .h2                              (h2    ),
+        .h3                              (h3    ),
+        .h4                              (h4    ),
+        .h5                              (h5    ),
+        .index1                           (index1),
+        .div_out        (div_out),
+        .sqrt_out       (sqrt_out)
+   );
+
     
     wire    clk_29_7_1M,clk_29_7_2M;;
     wire cha_clk;
@@ -184,7 +229,7 @@ output [11:0] test1
         .inu2_clk                                   ( inus_clk ),    
         .inu2_rstn                                  ( !rst_n              ),
         .wfifo2_wr_en                               (  1'b1          ),
-        .wfifo2_wr_data                             (  data_b ),
+        .wfifo2_wr_data                             (  {rx_data,div_out[7:0]} ),
         .wfifo2_wr_full                             (                   ),//�����źţ����Բ���
         .wfifo2_almost_full                         (                   ),
         .almost_empty2                              (                   ), 

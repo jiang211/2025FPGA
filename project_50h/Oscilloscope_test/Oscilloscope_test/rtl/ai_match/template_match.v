@@ -96,7 +96,7 @@ wire [10:0] sin_template_cnt_total = sin_template_cnt0 +sin_template_cnt1;
 reg [2:0] wave_type_fifo [0:1];
 always @(posedge clk )begin
     if(!rst_n)begin
-        wave_type <= TRI_WAVE;
+
     end
     else begin
         if(wave_valid)begin

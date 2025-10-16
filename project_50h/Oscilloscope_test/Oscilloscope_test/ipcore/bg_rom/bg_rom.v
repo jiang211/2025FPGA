@@ -1,5 +1,3 @@
-// Created by IP Generator (Version 2022.1 build 99559)
-
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -39,7 +37,7 @@ localparam RESET_TYPE = "ASYNC" ; // @IPC enum ASYNC,SYNC,Sync_Internally
 
 localparam POWER_OPT = 0 ; // @IPC bool
 
-localparam INIT_FILE = "D:/2024FPGApackage/2024FPGApackage/Oscilloscope_test/Oscilloscope_test/doc/xhfsq.dat" ; // @IPC string
+localparam INIT_FILE = "E:/2025FPGA/project_50h/Oscilloscope_test/Oscilloscope_test/doc/xhfsq.dat" ; // @IPC string
 
 localparam INIT_FORMAT = "HEX" ; // @IPC enum BIN,HEX
 
@@ -87,10 +85,10 @@ assign rd_data         = ((DEVICE_NAME == "PGT30G") && (DATA_WIDTH <= 9)) ? rd_d
 
 
 //ipml_rom IP instance
-ipml_rom_v1_5_bg_rom
+ipml_rom_v1_7_bg_rom
     #(
     .c_SIM_DEVICE       ( SIM_DEVICE            ),
-    .c_ADDR_WIDTH       ( ADDR_WIDTH            ), //write address width  legal value:1~20 
+    .c_ADDR_WIDTH       ( ADDR_WIDTH            ), //write address width  legal value:1~20
     .c_DATA_WIDTH       ( DATA_WIDTH_WRAP       ), //write data width     legal value:8~1152
     .c_OUTPUT_REG       ( OUTPUT_REG            ), //output register      legal value:1~20
     .c_RD_OCE_EN        ( RD_OCE_EN             ),
