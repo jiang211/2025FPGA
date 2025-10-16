@@ -71,6 +71,9 @@ wire [15:0] rgb_data_pa;
 wire [31:0] xh_control;
 wire [31:0]inu3_data;
 wire [31:0]inu2_data;
+wire [23:0] ly_data;
+wire [7:0] fft_data_other_board;
+wire uart_rx_pin;
 optical_fiber_top u0(
     .i_free_clk                                 (   sys_clk             ),
     .rst_n                                      (rst_n                  ),
@@ -118,10 +121,10 @@ optical_fiber_top u0(
     .wfifo3_wr_full                             (                   ),//�����źţ����Բ���
     .wfifo3_almost_full                         (                   ),
     .almost_empty3                              (                   ),     
-    .inu2_clk_last                              (  ad_clk    ),
+    .inu2_clk_last                              (  sys_clk    ),
     .inu2_rstn_last                             (  !rst_n       ),   
     .rd2_en_last                                (  1'b1           ),
-    .rd2_data_last                              (  inu2_data   ),
+    .rd2_data_last                              (  {ly_data,fft_data_other_board}   ),
     .almost_empty_last2                         (                   ),
     .inu3_clk_last                              (   ad_clk         ),
     .inu3_rstn_last                             (  !rst_n         ),   
@@ -132,6 +135,21 @@ optical_fiber_top u0(
     .k2                                         (                   ),
     .k3                                         (                   )   
 );
+//     parameter      BPS_NUM = 'd434;
+//     wire           rx_finish;       //receiver is free.
+//     wire           rx_en;
+// uart_rx #(
+//          .BPS_NUM            (  BPS_NUM       ) //parameter          BPS_NUM  =    16'd434
+//      )
+//      u_uart_rx (                        
+//         .clk                 (  sys_clk           ),// input             clk,                              
+//         .uart_rx             (  uart_rx_pin       ),// input             uart_rx,            
+//         .rx_data             (  ly_data       ),// output reg [7:0]  rx_data,                                   
+//         .rx_en               (  rx_en         ),// output reg        rx_en,                          
+//         .rx_finish           (  rx_finish     ) // output            rx_finish           
+//     );                                            
+           
+
 assign test = inu3_data[11:4];
 assign test1 = inu3_data[23:16];
 wire clk_a;
@@ -500,24 +518,24 @@ wire clk_20M,clk_40M,clk_60M,clk_80M,clk_100M;
         .duty               (duty)
     );
 
-    wire [7:0] cz_data;
+    // wire [7:0] cz_data;
     
-    assign filt_in1 = sin_addata2 - 'd128;//ad_data - 'd128;
-    assign filt_in2 = ad_data - 'd128;
-    filter u_filter(
-        .clk                (ad_clk),
-        .clk_enable         (1'b1),
-        .reset              (!locked),
-        .filter_in          (filt_in1),
-        .filter_out         (filter_out1)
-    );
-    fi ufi(
-        .clk            (ad_clk),
-        .clk_enable     (1'b1),
-        .reset          (!locked),
-        .filter_in      (filt_in2),
-        .filter_out     (filter_out2)
-    );
+    // assign filt_in1 = sin_addata2 - 'd128;//ad_data - 'd128;
+    // assign filt_in2 = ad_data - 'd128;
+    // filter u_filter(
+    //     .clk                (ad_clk),
+    //     .clk_enable         (1'b1),
+    //     .reset              (!locked),
+    //     .filter_in          (filt_in1),
+    //     .filter_out         (filter_out1)
+    // );
+    // fi ufi(
+    //     .clk            (ad_clk),
+    //     .clk_enable     (1'b1),
+    //     .reset          (!locked),
+    //     .filter_in      (filt_in2),
+    //     .filter_out     (filter_out2)
+    // );
     /*
     filter u_filter2(
         .clk                (ad_clk1),
@@ -528,6 +546,19 @@ wire clk_20M,clk_40M,clk_60M,clk_80M,clk_100M;
     );
 /********************************例化************************************/
 //fft
+wire fft_main_clk;
+pll_fft u_pll_fft (
+        .clkin1   (  sys_clk    ),//50MHz
+        .clkout0  (  fft_main_clk    ),//400MHZ
+        .pll_lock (        )
+    );
+wire fft_clk;
+clk_gen_128x_400m u_clk_gen_128x_400m(
+    .clk400m            (fft_main_clk),    // 400 MHz 主时钟
+    .rst_n              (locked),   
+    .f_sig_hz           (fre2 * 1000),   // 10 k – 1 M Hz
+    .clk_out            (fft_clk)    // 1.28 M – 128 M Hz
+);
 wire [7:0] f_dt;
 assign f_dt = (td2 == 1) ? ad_data2[11:4] : ad_data[11:4]; 
     assign fft_data_in = {7'b0,f_dt};
@@ -539,7 +570,7 @@ wire [15:0] div_out;
         )
         u_fft_top1
         (
-        .clk                            (sys_clk                      ),   
+        .clk                            (fft_clk                      ),   
         .rst_n                          (locked                        ),    
         .wd_en                          (1'b1                         ),   //fft ip写使能
         .wd_data                        (fft_data_in                     ),   //写信号数据
@@ -564,7 +595,7 @@ wire [15:0] div_out;
     
 
     fft_hdmi_rw_fifo_ctrl u_fft_hdmi_rw_fifo_ctrl1(
-        .wd_clk                (sys_clk                      ),
+        .wd_clk                (fft_clk                      ),
         .hdmi_clk              (pix_clk                      ),
         .rst_n                 (locked                        ),                         
         .fft_data              (fft_amplitude_frequency_data1),        //FFT频谱数据
@@ -585,7 +616,7 @@ wire [15:0] div_out;
 
 
     fft_hdmi_fifo u_fft_hdmi_fifo1 (
-        .wr_clk        (sys_clk       ),                        // input
+        .wr_clk        (fft_clk       ),                        // input
         .wr_rst        (~locked        ),                        // input
         .wr_en         (fifo_wr_req1  ),                        // input
         .wr_data       (fifo_wr_data1 ),                        // input [15:0]
@@ -721,19 +752,7 @@ wire [15:0] rgb_data_d2;
         .o_de          (de_out_d2        ) ,                        
         .o_data        (rgb_data_d2       )                          
     );
-    wire [7:0] sin_addata2;
-    sincer_top u(
-    .clk                    (sys_clk),
-    .rst_n                  (locked),
-    .wr_en                  (inu3_clk),   
-    .rd_en                  (1'b1),
-    .ori_data               (ad_data2),
-    .sin_data               (sin_addata2),
-    .p_wr_full              (),
-    .p_almost_full          (),
-    .n_rd_empty             (),
-    .n_almost_empty         ()
-);
+    
 
     assign cz_data = (cz == 1'b1) ? wave_data_dis1 : ad_data2[11:4];
     wav_display1  #(
@@ -840,6 +859,12 @@ wire [15:0] rgb_data_lj;
         .rgb_data                           (rgb_data_xh)
     );
 
+wire [10:0] cs_vpp_data;
+wire [10:0] cs_fre_data;
+assign cs_vpp_data = (ly_data != 24'b0) ? ly_data[10:0] : targe_vpp;
+assign cs_fre_data = (ly_data != 24'b0) ? ly_data[10:0] : targe_fre;
+
+
     lj_bg # (
         .COCLOR_DEPP(  8                    ), // number of bits per channel
         .X_BITS    (  X_WIDTH              ),  
@@ -850,11 +875,11 @@ wire [15:0] rgb_data_lj;
     u_lj(                                       
         .rstn                               (locked), 
         .pix_clk                            (pix_clk),
-        .clk                                (sys_clk),
+        .clk                                (~sys_clk),
         .act_x                              (act_x),
         .act_y                              (act_y),
-        .targe_fre                           (targe_fre),
-        .targe_vpp                           (targe_vpp),
+        .targe_fre                           (cs_fre_data),
+        .targe_vpp                           (cs_vpp_data),
         .vs_in                              (vs), 
         .hs_in                              (hs), 
         .de_in                              (de),

@@ -23,7 +23,7 @@ wire [10:0] index4;
 wire [10:0] index5;
 
 //assign index1 = fre / 29;
-assign index1 = fre / 50;
+assign index1 = 8;
 assign index2 = index1 << 1;
 assign index3 = index1 + (index1 << 1);  // 3×
 assign index4 = index1 << 2;   // 4×

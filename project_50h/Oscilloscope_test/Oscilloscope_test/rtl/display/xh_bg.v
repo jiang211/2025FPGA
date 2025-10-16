@@ -117,9 +117,9 @@ assign char_vpp_x = ((act_x >= (H_ACT - H_ACT/5 - H_ACT/5 + 'd55)) && (act_x <= 
 assign char_vpp_y = ((act_x >= (H_ACT - H_ACT/5 - H_ACT/5 + 'd55)) && (act_x <= (H_ACT - H_ACT/5 - 'd55)) && (act_y >= V_ACT/3 + V_ACT/2 + 28) && (act_y <= V_ACT - 28 ))? act_y - V_ACT/3 - V_ACT/2 - 28: 10'd0;
 assign ren_vpp    = ((act_x >= (H_ACT - H_ACT/5 - H_ACT/5 + 'd55)) && (act_x <= (H_ACT - H_ACT/5 - 'd55)) && (act_y >= V_ACT/3 + V_ACT/2 + 28) && (act_y <= V_ACT - 28 ))? 1'b0 : 1'b1;
 
-assign char_phase_x = ((act_x >= (H_ACT - H_ACT/5 - H_ACT/5 + 'd55)) && (act_x <= (H_ACT - H_ACT/5)) && (act_y >= V_ACT/3 + 28) && (act_y <= V_ACT - V_ACT/2 - 28 ))? act_x - H_ACT + H_ACT/5 + H_ACT/5 - 55: 10'd0;
-assign char_phase_y = ((act_x >= (H_ACT - H_ACT/5 - H_ACT/5 + 'd55)) && (act_x <= (H_ACT - H_ACT/5)) && (act_y >= V_ACT/3 + 28) && (act_y <= V_ACT - V_ACT/2 - 28 ))? act_y - V_ACT/3 - 28: 10'd0;
-assign ren_phase    = ((act_x >= (H_ACT - H_ACT/5 - H_ACT/5 + 'd55)) && (act_x <= (H_ACT - H_ACT/5)) && (act_y >= V_ACT/3 + 28) && (act_y <= V_ACT - V_ACT/2 - 28 ))? 1'b0 : 1'b1;
+assign char_phase_x = ((act_x >= (H_ACT - H_ACT/5 - H_ACT/5 + 'd55)) && (act_x <= (H_ACT - H_ACT/5) - 'd20) && (act_y >= V_ACT/3 + 28) && (act_y <= V_ACT - V_ACT/2 - 28 ))? act_x - H_ACT + H_ACT/5 + H_ACT/5 - 55: 10'd0;
+assign char_phase_y = ((act_x >= (H_ACT - H_ACT/5 - H_ACT/5 + 'd55)) && (act_x <= (H_ACT - H_ACT/5) - 'd20) && (act_y >= V_ACT/3 + 28) && (act_y <= V_ACT - V_ACT/2 - 28 ))? act_y - V_ACT/3 - 28: 10'd0;
+assign ren_phase    = ((act_x >= (H_ACT - H_ACT/5 - H_ACT/5 + 'd55)) && (act_x <= (H_ACT - H_ACT/5) - 'd20) && (act_y >= V_ACT/3 + 28) && (act_y <= V_ACT - V_ACT/2 - 28 ))? 1'b0 : 1'b1;
 
 assign char_num_phase_x = ((act_x >= (H_ACT - H_ACT/5 + 'd30)) && (act_x <= (H_ACT - 'd103)) && (act_y >= V_ACT/3 + 28) && (act_y <= V_ACT -V_ACT/2 - 28 ))? act_x - H_ACT + H_ACT/5 - 30: 10'd0;
 assign char_num_phase_y = ((act_x >= (H_ACT - H_ACT/5 + 'd30)) && (act_x <= (H_ACT - 'd103)) && (act_y >= V_ACT/3 + 28) && (act_y <= V_ACT -V_ACT/2 - 28 ))? act_y - V_ACT/3 - 28: 10'd0;
@@ -241,7 +241,7 @@ assign char_y = (!ren1) ? char1_y :
                 (!ren_num_l8) ? char_num_l8_y + 'd480 :
                 (!ren_num_l9) ? char_num_l9_y + 'd528 : 10'd0;
 
-assign ren = (ren1 & ren2 & ren_vpp & ren_fre & ren_num_l0 & ren_num_l1 & ren_num_l2 & ren_num_l3 & ren_num_l4 & ren_num_l5 & ren_num_l6 & ren_num_l7 & ren_num_l8 & ren_num_l9) ? 1'b1 : 1'b0;
+assign ren = (ren1 & ren2 & ren_vpp & ren_fre & ren_phase & ren_num_l0 & ren_num_l1 & ren_num_l2 & ren_num_l3 & ren_num_l4 & ren_num_l5 & ren_num_l6 & ren_num_l7 & ren_num_l8 & ren_num_l9) ? 1'b1 : 1'b0;
 
 always@(posedge pix_clk)
 begin
@@ -276,7 +276,7 @@ begin
 		else
 			rgb_data <= 15'hffff;
     else if(ren_num_phase == 1'b0)
-		if(rom_data_phase['d72 - char_phase_x] == 1)
+		if(rom_data_phase['d72 - char_targe_x] == 1)
 			rgb_data <= 15'h0000;
 		else
 			rgb_data <= 15'hffff;

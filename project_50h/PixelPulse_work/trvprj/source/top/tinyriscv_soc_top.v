@@ -72,8 +72,13 @@ output  almost_empty_last,
 output  [7:0] ad_data_inceshi,
 output wire ren         ,
 
+output [31:0] fft_amplitude_frequency_data1,
+output [10:0] index,
+output [15:0] div_out,
+
 output [11:0] test,
-output [11:0] test1
+output [11:0] test1,
+output [23:0] rx_data
 
     );
 
@@ -156,42 +161,45 @@ output [11:0] test1
     parameter integer DATAIN_WIDTH    = 16   ;
     parameter integer DATAOUT_WIDTH   = 32   ;
     parameter integer USER_WIDTH      = 16   ;
-    assign fft_data_in = {8'b0,data_b[11:4]};
+    assign fft_data_in = {8'b0,data_a[11:4]};
     wire [15:0] div_out;
-    fft_top #(
-        .DATAIN_WIDTH    (DATAIN_WIDTH     ),                           
-        .DATAOUT_WIDTH   (DATAOUT_WIDTH    ),                           
-        .USER_WIDTH      (USER_WIDTH       )                        
-        )
-        u_fft_top1
-        (
-        .clk                            (sys_clk                      ),   
-        .rst_n                          (locked                        ),    
-        .wd_en                          (1'b1                         ),   //fft ip写使能
-        .wd_data                        (fft_data_in                     ),   //写信号数据
-        .rd_en                          (rd_en1                       ),   //读使能
-        .data_input_start_flag          (data_input_start_flag1       ),   //fft_modulus_fifo存储数据需求标志
-        .fft_amplitude_frequency_data   (fft_amplitude_frequency_data1) ,   //输出幅频数据
-        .index                         (index),
-        .sqrt_busy                       (sqrt_busy),
-        .thd_q16_16                      (thd_q16_16),
-        .thd_valid                       (thd_valid),
-        .fre                            (fre2),
-        .h1                              (h1    ),
-        .h2                              (h2    ),
-        .h3                              (h3    ),
-        .h4                              (h4    ),
-        .h5                              (h5    ),
-        .index1                           (index1),
-        .div_out        (div_out),
-        .sqrt_out       (sqrt_out)
-   );
+     fft_top #(
+         .DATAIN_WIDTH    (DATAIN_WIDTH     ),                           
+         .DATAOUT_WIDTH   (DATAOUT_WIDTH    ),                           
+         .USER_WIDTH      (USER_WIDTH       )     
+                   
+         )
+         u_fft_top1
+         (
+         .clk                            (sys_clk                      ),   
+         .rst_n                          (locked                        ),    
+         .wd_en                          (1'b1                         ),   //fft ip写使能
+         .wd_data                        (fft_data_in                     ),   //写信号数据
+         .rd_en                          (rd_en1                       ),   //读使能
+         .data_input_start_flag          (data_input_start_flag1       ),   //fft_modulus_fifo存储数据需求标志
+         .fft_amplitude_frequency_data   (fft_amplitude_frequency_data1) ,   //输出幅频数据
+         .index                         (index),
+         .sqrt_busy                       (sqrt_busy),
+         .thd_q16_16                      (thd_q16_16),
+         .thd_valid                       (thd_valid),
+         .fre                            (fre2),
+         .h1                              (h1    ),
+         .h2                              (h2    ),
+         .h3                              (h3    ),
+         .h4                              (h4    ),
+         .h5                              (h5    ),
+         .index1                           (index1),
+         .div_out        (div_out),
+         .sqrt_out       (sqrt_out)
+    );
 
     
     wire    clk_29_7_1M,clk_29_7_2M;;
     wire cha_clk;
     assign Adc_Clk_A = clk_29_7_1M;
-    assign Adc_Clk_B = clk_29_7_2M;
+    assign Adc_Clk_B = clk_29_7_1M;
+    wire inus_clk1;
+    assign inus_clk1 = clk;
     wire [31:0] c_en;
     optical_fiber_top u0(
         .i_free_clk                                 (   clk             ),
@@ -226,10 +234,10 @@ output [11:0] test1
         .o_rdisper_3                                (o_rdisper_3            ),
         .o_rdecer_3                                 (o_rdecer_3             ), 
         .tx_disable                                 (tx_disable             ),
-        .inu2_clk                                   ( inus_clk ),    
+        .inu2_clk                                   (  clk ),    
         .inu2_rstn                                  ( !rst_n              ),
         .wfifo2_wr_en                               (  1'b1          ),
-        .wfifo2_wr_data                             (  {rx_data,div_out[7:0]} ),
+        .wfifo2_wr_data                             (    {rx_data,div_out[7:0]}),
         .wfifo2_wr_full                             (                   ),//�����źţ����Բ���
         .wfifo2_almost_full                         (                   ),
         .almost_empty2                              (                   ), 
