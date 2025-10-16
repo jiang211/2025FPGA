@@ -25,6 +25,7 @@ reg [15 : 0] totol_percnt;
 reg [7:0] duty_mid;
 
 reg [7:0] duty_fifo [0:1];
+reg [7:0] cnt;
 reg update;
 always @(posedge clk)begin
     if(!rst_n)begin
@@ -90,7 +91,11 @@ always @(posedge clk)begin
                     end else begin
                         if(~update)begin
                             duty_fifo[0]  <= 'd100 - duty_mid;
-                            if(duty_fifo[0]=='d100 - duty_mid)duty_fifo[1] <= 'd100 - duty_mid;
+                            if(duty_fifo[0]=='d100 - duty_mid)cnt <= cnt + 1;
+                            else cnt <= 0;
+                            if(cnt >= 4)begin
+                                duty_fifo[1] <= duty_fifo[0];
+                            end
                             update <= 1;
                         end
                     end
